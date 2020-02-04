@@ -1,6 +1,8 @@
 package startup
 
 import (
+	"cricket-scoreboard-api/src/controllers"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -8,5 +10,9 @@ import (
 // returns it.
 func NewRouter() *gin.Engine {
 	router := gin.New()
+
+	teams := new(controllers.TeamController)
+	router.GET("/teams", teams.GetTeams)
+
 	return router
 }

@@ -1,0 +1,10 @@
+{
+    "db" : {
+        "endpoint" : "",
+        "name" : ""
+    },
+    "server" : {
+        "host" : "localhost",
+        "port" : "8081"
+    }
+}

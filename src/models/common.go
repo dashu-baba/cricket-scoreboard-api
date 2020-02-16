@@ -12,3 +12,5 @@ const (
 	// AllRouner godoc
 	AllRouner PlayerType = 3
 )
+
+

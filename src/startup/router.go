@@ -13,6 +13,7 @@ func NewRouter() *gin.Engine {
 
 	teams := new(controllers.TeamController)
 	router.GET("/teams", teams.GetTeams)
+	router.POST("/teams", teams.CreateTeams)
 
 	return router
 }

@@ -16,7 +16,6 @@ type Config struct {
 	//Db denotes database configuration
 	Db struct {
 		EndPoint string `json:"endpoint"`
-		Name     string `json:"name"`
 	} `json:"db"`
 	//Server denotes database configuration
 	Server struct {

@@ -6,6 +6,7 @@ import (
 	"cricket-scoreboard-api/src/requestmodels"
 	"cricket-scoreboard-api/src/responsemodels"
 	"cricket-scoreboard-api/src/services"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -48,8 +49,17 @@ func (controller TeamController) CreateTeam(context *gin.Context) {
 	// 	context.JSON(http.StatusBadRequest, errModel)
 	// }
 	request = requestmodels.TeamCreateModel{
-		Name: "Relisource",
-		Logo: "",
+		Name:    "Relisource",
+		Logo:    "",
+		Players: []requestmodels.PlayerCreateModel{},
+	}
+
+	for i := 0; i < 11; i++ {
+		item := requestmodels.PlayerCreateModel{
+			Name:       fmt.Sprintf("A %d", i),
+			PlayerType: models.AllRouner,
+		}
+		request.Players = append(request.Players, item)
 	}
 
 	controller.TeamService.CreateTeam(request)

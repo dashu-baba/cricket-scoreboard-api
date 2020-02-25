@@ -18,6 +18,9 @@ func NewRouter() *gin.Engine {
 			repositories.NewTeamRepository(
 				driver.ConnectDb(),
 			),
+			repositories.NewPlayerRepository(
+				driver.ConnectDb(),
+			),
 		),
 	)
 	router.GET("/teams", teamController.GetTeams)

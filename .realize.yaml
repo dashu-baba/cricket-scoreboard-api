@@ -1,0 +1,23 @@
+settings:
+  legacy:
+    force: false
+    interval: 0s
+schema:
+  - name: cricket-scoreboard-api
+    path: .
+    commands:
+      install:
+        status: true
+        method: go build -o app.out ./src
+      run:
+        status: true
+        method: ./app.out
+    watcher:
+      paths:
+        - /
+      extensions:
+        - go
+      ignored_paths:
+        - .git
+        - .realize
+        - vendor

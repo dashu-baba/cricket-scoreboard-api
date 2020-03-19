@@ -1,0 +1,20 @@
+version: '3.7'
+services:
+  scoreboard_api:
+    build: .
+    command: realize start --run
+    volumes:
+      - './src:/opt/app/src'
+    ports:
+      - '8080:8080'
+    depends_on:
+      - backend-mongodb
+  backend-mongodb:
+    image: mongo
+    restart: on-failure
+    volumes:
+      - 'database_vol:/data/db'
+    ports:
+      - '27017:27017'
+volumes:
+  database_vol: null

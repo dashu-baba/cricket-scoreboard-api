@@ -1,9 +1,7 @@
 package models
 
 import (
-	"encoding/json"
 	"os"
-	"path/filepath"
 )
 
 var (
@@ -26,28 +24,11 @@ type Config struct {
 
 //New creates a new instance of Config
 func New(fileName string) Config {
-	file, err := os.Open(fileName)
-	if err != nil {
-		panic(err)
-	}
 
 	config := Config{}
-	decoder := json.NewDecoder(file)
-	err = decoder.Decode(&config)
-
-	if err != nil {
-		panic(err)
-	}
+	config.Db.EndPoint = os.Getenv("DB_CONN")
+	config.Server.Host = os.Getenv("HOST")
+	config.Server.Port = os.Getenv("PORT")
 
 	return config
-}
-
-//init sets up the initial states
-func init() {
-	dir, err := os.Getwd()
-	if err != nil {
-		panic(err)
-	}
-
-	Configuration = New(filepath.Join(dir, "config", "app.config.json"))
 }

@@ -13,5 +13,16 @@ type Match struct {
 	ID        primitive.ObjectID
 	Number    int
 	MatchType models.MatchType
-	Over      int
+	OverLimit int
+	Result    MatchResult
+	SeriesID  primitive.ObjectID
+}
+
+// MatchResult godoc
+// @Summary Define MatchResult model
+type MatchResult struct {
+	Result        models.ResultType
+	WinningTeamID primitive.ObjectID
+	LosingTeamID  primitive.ObjectID
+	WinLoseType   models.WinLoseType
 }

@@ -2,11 +2,9 @@
 package controllers
 
 import (
-	"cricket-scoreboard-api/src/models"
 	"cricket-scoreboard-api/src/requestmodels"
 	"cricket-scoreboard-api/src/responsemodels"
 	"cricket-scoreboard-api/src/services"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -26,40 +24,18 @@ func NewTeamController(TeamService *services.TeamService) *TeamController {
 
 //GetTeams method returns team lists
 func (controller TeamController) GetTeams(context *gin.Context) {
-	// teams := make([]responsemodels.Team, 1)
-	// teams[0] = responsemodels.Team{
-	// 	Name:    "Relisource",
-	// 	Players: make([]responsemodels.Player, 11),
-	// }
-	// for i := 0; i < 11; i++ {
-	// 	teams[0].Players[i] = responsemodels.Player{
-	// 		Name:       "A",
-	// 		PlayerType: models.AllRouner,
-	// 	}
-	// }
 	context.JSON(http.StatusOK, controller.TeamService.GetAllTeam())
 }
 
 //CreateTeam parses input from request and save the input, returns created team.
 func (controller TeamController) CreateTeam(context *gin.Context) {
-	var request requestmodels.TeamCreateModel
-	// var errModel = ValidateCreateTeamsRequests(&request, context)
+	var request, err = requestmodels.ValidateCreateTeamsRequests(context)
 
-	// if errModel.ErrorCode == http.StatusBadRequest {
-	// 	context.JSON(http.StatusBadRequest, errModel)
-	// }
-	request = requestmodels.TeamCreateModel{
-		Name:    "Relisource",
-		Logo:    "",
-		Players: []requestmodels.PlayerCreateModel{},
-	}
-
-	for i := 0; i < 11; i++ {
-		item := requestmodels.PlayerCreateModel{
-			Name:       fmt.Sprintf("A %d", i),
-			PlayerType: models.AllRouner,
-		}
-		request.Players = append(request.Players, item)
+	if err != nil {
+		context.JSON(http.StatusBadRequest, responsemodels.ErrorModel{
+			ErrorCode: http.StatusBadRequest,
+			Message:   err.Error(),
+		})
 	}
 
 	controller.TeamService.CreateTeam(request)
@@ -68,13 +44,33 @@ func (controller TeamController) CreateTeam(context *gin.Context) {
 		Name:    "Relisource",
 		Players: make([]responsemodels.Player, 11),
 	}
-	for i := 0; i < 11; i++ {
-		res.Players[i] = responsemodels.Player{
-			Name:       "A",
-			PlayerType: models.AllRouner,
-		}
-	}
 	context.JSON(http.StatusCreated, res)
+}
+
+//AddPlayer adds player into team.
+func (controller TeamController) AddPlayer(context *gin.Context) {
+	var request, err = requestmodels.ValidateAddPlayerRequests(context)
+
+	if err != nil {
+		context.JSON(http.StatusBadRequest, responsemodels.ErrorModel{
+			ErrorCode: http.StatusBadRequest,
+			Message:   err.Error(),
+		})
+	}
+
+	res := controller.TeamService.CreatePlayer(request)
+
+	context.JSON(http.StatusCreated, res)
+}
+
+//RemovePlayer removes player from team.
+func (controller TeamController) RemovePlayer(context *gin.Context) {
+	playerid := context.Param("playerid")
+	teamid := context.Param("id")
+
+	controller.TeamService.RemovePlayer(teamid, playerid)
+
+	context.JSON(http.StatusNoContent, nil)
 }
 
 //UpdateTeam update team partially, and return no content.

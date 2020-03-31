@@ -26,7 +26,7 @@ func NewPlayerRepository(DB *driver.DB) *PlayerRepository {
 	}
 }
 
-//InsertMany insert a player object into db
+//InsertMany insert a list of player objects into db
 //and return that inserted items.
 func (repo *PlayerRepository) InsertMany(players []domains.Player) []domains.Player {
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
@@ -42,19 +42,42 @@ func (repo *PlayerRepository) InsertMany(players []domains.Player) []domains.Pla
 		panic(err)
 	}
 
-	res := []domains.Player{}
-	for _, val := range items {
-		res = append(res, val.(domains.Player))
+	return repo.GetAll(players[0].TeamID)
+}
+
+//Insert insert a player object into db
+//and return that inserted item.
+func (repo *PlayerRepository) Insert(player domains.Player) domains.Player {
+	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	collections := repo.DB.Database.Collection(collectionName)
+
+	player.ID = primitive.NewObjectID()
+	_, err := collections.InsertOne(ctx, player)
+
+	if err != nil {
+		panic(err)
 	}
 
-	return res
+	return player
+}
+
+//Remove removes a player object from db
+func (repo *PlayerRepository) Remove(id primitive.ObjectID) {
+	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	collections := repo.DB.Database.Collection(collectionName)
+
+	_, err := collections.DeleteOne(ctx, bson.M{"_id": id})
+
+	if err != nil {
+		panic(err)
+	}
 }
 
 //GetAll retrieves all player objects from db
 //by teamid
 //and return that collection.
 func (repo *PlayerRepository) GetAll(teamID primitive.ObjectID) []domains.Player {
-	ctx, _ := context.WithTimeout(context.Background(), 50*time.Second)
+	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
 	collections := repo.DB.Database.Collection(collectionName)
 	cursor, err := collections.Find(ctx, bson.M{"teamID": teamID})
 

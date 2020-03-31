@@ -25,6 +25,8 @@ func NewRouter() *gin.Engine {
 	)
 	router.GET("/teams", teamController.GetTeams)
 	router.POST("/teams", teamController.CreateTeam)
+	router.POST("/teams/:id/players", teamController.AddPlayer)
+	router.DELETE("/teams/:id/players/:playerid", teamController.RemovePlayer)
 
 	return router
 }

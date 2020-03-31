@@ -122,3 +122,28 @@ func (repo *TeamRepository) GetAllByIds(ids []string) []domains.Team {
 
 	return teams
 }
+
+//GetByID retrieves team object from db by id
+//and return that object.
+func (repo *TeamRepository) GetByID(id string) domains.Team {
+	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	collections := repo.DB.Database.Collection(teamCollectionName)
+	objID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		panic(err)
+	}
+
+	findResult := collections.FindOne(ctx, bson.M{"_id": objID})
+
+	if err := findResult.Err(); err != nil {
+		panic(err)
+	}
+
+	team := domains.Team{}
+	err = findResult.Decode(&team)
+	if err != nil {
+		panic(err)
+	}
+
+	return team
+}

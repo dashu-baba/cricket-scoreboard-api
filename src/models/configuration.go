@@ -2,6 +2,7 @@ package models
 
 import (
 	"os"
+	"path/filepath"
 )
 
 var (
@@ -31,4 +32,14 @@ func New(fileName string) Config {
 	config.Server.Port = os.Getenv("PORT")
 
 	return config
+}
+
+//init sets up the initial states
+func init() {
+	dir, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+
+	Configuration = New(filepath.Join(dir, "config", "app.config.json"))
 }

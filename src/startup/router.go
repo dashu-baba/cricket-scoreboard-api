@@ -6,6 +6,7 @@ import (
 	"cricket-scoreboard-api/src/repositories"
 	"cricket-scoreboard-api/src/services"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -13,6 +14,9 @@ import (
 // returns it.
 func NewRouter() *gin.Engine {
 	router := gin.New()
+
+	router.Use(cors.Default())
+
 	teamController := controllers.NewTeamController(
 		services.NewTeamService(
 			repositories.NewTeamRepository(
@@ -23,10 +27,14 @@ func NewRouter() *gin.Engine {
 			),
 		),
 	)
+
 	router.GET("/teams", teamController.GetTeams)
 	router.POST("/teams", teamController.CreateTeam)
+	router.GET("/teams/:id", teamController.GetTeam)
+	router.PUT("/teams/:id", teamController.UpdateTeam)
 	router.POST("/teams/:id/players", teamController.AddPlayer)
 	router.DELETE("/teams/:id/players/:playerid", teamController.RemovePlayer)
+	router.PUT("/teams/:id/players/:playerid", teamController.UpdatePlayer)
 
 	return router
 }

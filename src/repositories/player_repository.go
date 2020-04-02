@@ -5,7 +5,7 @@ import (
 	"context"
 	"cricket-scoreboard-api/src/domains"
 	"cricket-scoreboard-api/src/driver"
-	"time"
+	"fmt"
 
 	"go.mongodb.org/mongo-driver/bson"
 
@@ -26,29 +26,60 @@ func NewPlayerRepository(DB *driver.DB) *PlayerRepository {
 	}
 }
 
+//Update update a team object into db
+//and return that updated item.
+func (repo *PlayerRepository) Update(ctx context.Context, id string, updates map[string]interface{}) {
+	collections := repo.DB.Database.Collection(collectionName)
+
+	objID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		panic(err)
+	}
+
+	filter := bson.M{"id": objID}
+	updatedValue := bson.M{}
+	updatedValue = updates
+
+	update := bson.M{"$set": updatedValue}
+	updateResult, err := collections.UpdateOne(
+		ctx,
+		filter,
+		update,
+	)
+
+	fmt.Println(updateResult)
+
+	if err != nil {
+		panic(err)
+	}
+}
+
 //InsertMany insert a list of player objects into db
 //and return that inserted items.
-func (repo *PlayerRepository) InsertMany(players []domains.Player) []domains.Player {
-	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+func (repo *PlayerRepository) InsertMany(ctx context.Context, players []domains.Player) []domains.Player {
+	if len(players) <= 0 {
+		return []domains.Player{}
+	}
+
 	collections := repo.DB.Database.Collection(collectionName)
 	items := []interface{}{}
 	for _, value := range players {
 		value.ID = primitive.NewObjectID()
 		items = append(items, value)
 	}
+
 	_, err := collections.InsertMany(ctx, items)
 
 	if err != nil {
 		panic(err)
 	}
 
-	return repo.GetAll(players[0].TeamID)
+	return repo.GetAll(ctx, players[0].TeamID.Hex())
 }
 
 //Insert insert a player object into db
 //and return that inserted item.
-func (repo *PlayerRepository) Insert(player domains.Player) domains.Player {
-	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+func (repo *PlayerRepository) Insert(ctx context.Context, player domains.Player) domains.Player {
 	collections := repo.DB.Database.Collection(collectionName)
 
 	player.ID = primitive.NewObjectID()
@@ -62,11 +93,10 @@ func (repo *PlayerRepository) Insert(player domains.Player) domains.Player {
 }
 
 //Remove removes a player object from db
-func (repo *PlayerRepository) Remove(id primitive.ObjectID) {
-	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+func (repo *PlayerRepository) Remove(ctx context.Context, id primitive.ObjectID) {
 	collections := repo.DB.Database.Collection(collectionName)
 
-	_, err := collections.DeleteOne(ctx, bson.M{"_id": id})
+	_, err := collections.DeleteOne(ctx, bson.M{"id": id})
 
 	if err != nil {
 		panic(err)
@@ -76,10 +106,14 @@ func (repo *PlayerRepository) Remove(id primitive.ObjectID) {
 //GetAll retrieves all player objects from db
 //by teamid
 //and return that collection.
-func (repo *PlayerRepository) GetAll(teamID primitive.ObjectID) []domains.Player {
-	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+func (repo *PlayerRepository) GetAll(ctx context.Context, teamID string) []domains.Player {
+	objID, err := primitive.ObjectIDFromHex(teamID)
+	if err != nil {
+		panic(err)
+	}
+
 	collections := repo.DB.Database.Collection(collectionName)
-	cursor, err := collections.Find(ctx, bson.M{"teamID": teamID})
+	cursor, err := collections.Find(ctx, bson.M{"teamid": objID})
 
 	if err != nil {
 		panic(err)

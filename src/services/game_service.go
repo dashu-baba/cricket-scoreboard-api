@@ -2,9 +2,7 @@
 package services
 
 import (
-	"cricket-scoreboard-api/src/domains"
 	"cricket-scoreboard-api/src/repositories"
-	"cricket-scoreboard-api/src/requestmodels"
 )
 
 //GameService defines the service instance
@@ -23,15 +21,4 @@ func NewGameService(teamRepository *repositories.TeamRepository,
 		PlayerRepository: playerRepository,
 		GameRepository:   gameRepository,
 	}
-}
-
-//CreateGame creates a game item
-func (service *GameService) CreateGame(model requestmodels.GameCreateModel) {
-	game := domains.Game{
-		GameType: model.GameType,
-		Teams:    service.TeamRepository.GetAllByIds(model.Teams),
-		Name:     model.Name,
-	}
-
-	game = service.GameRepository.Insert(game)
 }

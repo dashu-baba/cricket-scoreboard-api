@@ -2,6 +2,7 @@
 package services
 
 import (
+	"context"
 	"cricket-scoreboard-api/src/domains"
 	"cricket-scoreboard-api/src/repositories"
 	"cricket-scoreboard-api/src/requestmodels"
@@ -26,30 +27,63 @@ func NewTeamService(TeamRepository *repositories.TeamRepository,
 }
 
 //GetAllTeam returns the collection of all team
-func (service *TeamService) GetAllTeam() []responsemodels.Team {
+func (service *TeamService) GetAllTeam(ctx context.Context) []responsemodels.Team {
 
-	teams := service.TeamRepository.GetAll()
+	teams := service.TeamRepository.GetAll(ctx)
 	responses := []responsemodels.Team{}
 	for _, team := range teams {
 		response := responsemodels.Team{
-			ID:   team.ID.String(),
+			ID:   team.ID.Hex(),
 			Logo: team.Logo,
 			Name: team.Name,
 		}
+		response.Players = []responsemodels.Player{}
+		for _, player := range team.Players {
+			response.Players = append(response.Players, responsemodels.Player{
+				ID:         player.ID.Hex(),
+				Name:       player.Name,
+				PlayerType: player.PlayerType,
+				TeamID:     player.TeamID.Hex(),
+			})
+		}
+
 		responses = append(responses, response)
 	}
 
 	return responses
 }
 
+//GetTeam returns the team by id
+func (service *TeamService) GetTeam(ctx context.Context, id string) responsemodels.Team {
+
+	team := service.TeamRepository.GetByID(ctx, id)
+	response := responsemodels.Team{
+		ID:   team.ID.Hex(),
+		Logo: team.Logo,
+		Name: team.Name,
+	}
+	response.Players = []responsemodels.Player{}
+	for _, player := range team.Players {
+		responsePlayer := responsemodels.Player{
+			ID:         player.ID.Hex(),
+			Name:       player.Name,
+			PlayerType: player.PlayerType,
+			TeamID:     player.TeamID.Hex(),
+		}
+		response.Players = append(response.Players, responsePlayer)
+	}
+
+	return response
+}
+
 //CreateTeam insert a team item
-func (service *TeamService) CreateTeam(model requestmodels.TeamCreateModel) {
+func (service *TeamService) CreateTeam(ctx context.Context, model requestmodels.TeamCreateModel) {
 	team := domains.Team{
 		Logo: model.Logo,
 		Name: model.Name,
 	}
 
-	team = service.TeamRepository.Insert(team)
+	team = service.TeamRepository.Insert(ctx, team)
 	players := []domains.Player{}
 	for _, val := range model.Players {
 		player := domains.Player{
@@ -60,14 +94,42 @@ func (service *TeamService) CreateTeam(model requestmodels.TeamCreateModel) {
 		players = append(players, player)
 	}
 
-	players = service.PlayerRepository.InsertMany(players)
+	players = service.PlayerRepository.InsertMany(ctx, players)
 
-	service.TeamRepository.Update(team, players)
+	if len(players) > 0 {
+		updates := map[string]interface{}{}
+		updates["players"] = players
+
+		service.TeamRepository.Update(ctx, team.ID.Hex(), updates)
+	}
+}
+
+//UpdateTeam update a team item
+func (service *TeamService) UpdateTeam(ctx context.Context, id string, model requestmodels.TeamUpdateModel) {
+	updates := map[string]interface{}{}
+	updates["name"] = model.Name
+	service.TeamRepository.Update(ctx, id, updates)
+}
+
+//UpdatePlayer update a player item
+func (service *TeamService) UpdatePlayer(ctx context.Context, id string, teamID string, model requestmodels.PlayerUpdateModel) {
+	updates := map[string]interface{}{}
+	updates["name"] = model.Name
+	updates["playertype"] = model.PlayerType
+	service.PlayerRepository.Update(ctx, id, updates)
+
+	team := service.TeamRepository.GetByID(ctx, teamID)
+	team.Players = service.PlayerRepository.GetAll(ctx, teamID)
+
+	updates = map[string]interface{}{}
+	updates["players"] = team.Players
+
+	service.TeamRepository.Update(ctx, team.ID.Hex(), updates)
 }
 
 //CreatePlayer insert a player item
-func (service *TeamService) CreatePlayer(model requestmodels.PlayerCreateModel) responsemodels.Player {
-	teamID, err := primitive.ObjectIDFromHex(model.TeamID)
+func (service *TeamService) CreatePlayer(ctx context.Context, teamID string, model requestmodels.PlayerCreateModel) responsemodels.Player {
+	teamObjID, err := primitive.ObjectIDFromHex(teamID)
 	if err != nil {
 		panic(err)
 	}
@@ -75,33 +137,37 @@ func (service *TeamService) CreatePlayer(model requestmodels.PlayerCreateModel) 
 	player := domains.Player{
 		Name:       model.Name,
 		PlayerType: model.PlayerType,
-		TeamID:     teamID,
+		TeamID:     teamObjID,
 	}
 
-	player = service.PlayerRepository.Insert(player)
+	player = service.PlayerRepository.Insert(ctx, player)
 
-	team := service.TeamRepository.GetByID(model.TeamID)
+	team := service.TeamRepository.GetByID(ctx, teamID)
 	team.Players = append(team.Players, player)
-	service.TeamRepository.Update(team, team.Players)
+
+	updates := map[string]interface{}{}
+	updates["players"] = team.Players
+
+	service.TeamRepository.Update(ctx, team.ID.Hex(), updates)
 
 	return responsemodels.Player{
-		ID:         player.ID.String(),
+		ID:         player.ID.Hex(),
 		Name:       player.Name,
 		PlayerType: player.PlayerType,
-		TeamID:     player.TeamID.String(),
+		TeamID:     player.TeamID.Hex(),
 	}
 }
 
 //RemovePlayer remove a player from team
-func (service *TeamService) RemovePlayer(teamID string, playerID string) {
+func (service *TeamService) RemovePlayer(ctx context.Context, teamID string, playerID string) {
 	playerObjID, err := primitive.ObjectIDFromHex(playerID)
 	if err != nil {
 		panic(err)
 	}
 
-	service.PlayerRepository.Remove(playerObjID)
+	service.PlayerRepository.Remove(ctx, playerObjID)
 
-	team := service.TeamRepository.GetByID(teamID)
+	team := service.TeamRepository.GetByID(ctx, teamID)
 
 	position := -1
 
@@ -113,8 +179,13 @@ func (service *TeamService) RemovePlayer(teamID string, playerID string) {
 	}
 
 	if position != -1 {
-		team.Players = append(team.Players[:position], team.Players[:position+1]...)
+		team.Players[position] = team.Players[len(team.Players)-1] // Copy last element to index i.
+		// Erase last element (write zero value).
+		team.Players = team.Players[:len(team.Players)-1]
 	}
 
-	service.TeamRepository.Update(team, team.Players)
+	updates := map[string]interface{}{}
+	updates["players"] = team.Players
+
+	service.TeamRepository.Update(ctx, team.ID.Hex(), updates)
 }

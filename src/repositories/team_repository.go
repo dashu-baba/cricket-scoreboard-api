@@ -5,7 +5,7 @@ import (
 	"context"
 	"cricket-scoreboard-api/src/domains"
 	"cricket-scoreboard-api/src/driver"
-	"time"
+	"fmt"
 
 	"go.mongodb.org/mongo-driver/bson"
 
@@ -28,8 +28,7 @@ func NewTeamRepository(DB *driver.DB) *TeamRepository {
 
 //Insert insert a team object into db
 //and return that inserted item.
-func (repo *TeamRepository) Insert(team domains.Team) domains.Team {
-	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+func (repo *TeamRepository) Insert(ctx context.Context, team domains.Team) domains.Team {
 	collections := repo.DB.Database.Collection(teamCollectionName)
 	team.ID = primitive.NewObjectID()
 	_, err := collections.InsertOne(ctx, team)
@@ -41,24 +40,34 @@ func (repo *TeamRepository) Insert(team domains.Team) domains.Team {
 	return team
 }
 
-//Update update a team object into db
+//Update update a player object into db
 //and return that updated item.
-func (repo *TeamRepository) Update(team domains.Team, players []domains.Player) domains.Team {
+func (repo *TeamRepository) Update(ctx context.Context, id string, updates map[string]interface{}) domains.Team {
 	collections := repo.DB.Database.Collection(teamCollectionName)
 
-	filter := bson.M{"id": team.ID}
-	update := bson.M{"$set": bson.M{"players": players}}
-	_, err := collections.UpdateOne(
-		context.Background(),
+	objID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		panic(err)
+	}
+
+	filter := bson.M{"id": objID}
+	updatedValue := bson.M{}
+	updatedValue = updates
+
+	update := bson.M{"$set": updatedValue}
+	updateResult, err := collections.UpdateOne(
+		ctx,
 		filter,
 		update,
 	)
+
+	fmt.Println(updateResult)
 
 	if err != nil {
 		panic(err)
 	}
 
-	return team
+	return repo.GetByID(ctx, id)
 }
 
 //toDoc converts object to bson document
@@ -74,8 +83,7 @@ func toDoc(v interface{}) (doc *bson.D, err error) {
 
 //GetAll retrieves all team objects from db
 //and return that collection.
-func (repo *TeamRepository) GetAll() []domains.Team {
-	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+func (repo *TeamRepository) GetAll(ctx context.Context) []domains.Team {
 	collections := repo.DB.Database.Collection(teamCollectionName)
 	cursor, err := collections.Find(ctx, bson.M{})
 
@@ -95,8 +103,7 @@ func (repo *TeamRepository) GetAll() []domains.Team {
 
 //GetAllByIds retrieves team objects from db by ids
 //and return that collection.
-func (repo *TeamRepository) GetAllByIds(ids []string) []domains.Team {
-	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+func (repo *TeamRepository) GetAllByIds(ctx context.Context, ids []string) []domains.Team {
 	collections := repo.DB.Database.Collection(teamCollectionName)
 
 	oids := []primitive.ObjectID{}
@@ -125,15 +132,14 @@ func (repo *TeamRepository) GetAllByIds(ids []string) []domains.Team {
 
 //GetByID retrieves team object from db by id
 //and return that object.
-func (repo *TeamRepository) GetByID(id string) domains.Team {
-	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+func (repo *TeamRepository) GetByID(ctx context.Context, id string) domains.Team {
 	collections := repo.DB.Database.Collection(teamCollectionName)
 	objID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		panic(err)
 	}
 
-	findResult := collections.FindOne(ctx, bson.M{"_id": objID})
+	findResult := collections.FindOne(ctx, bson.M{"id": objID})
 
 	if err := findResult.Err(); err != nil {
 		panic(err)

@@ -2,6 +2,7 @@
 package controllers
 
 import (
+	"context"
 	"cricket-scoreboard-api/src/requestmodels"
 	"cricket-scoreboard-api/src/responsemodels"
 	"cricket-scoreboard-api/src/services"
@@ -23,70 +24,155 @@ func NewTeamController(TeamService *services.TeamService) *TeamController {
 }
 
 //GetTeams method returns team lists
-func (controller TeamController) GetTeams(context *gin.Context) {
-	context.JSON(http.StatusOK, controller.TeamService.GetAllTeam())
+func (controller TeamController) GetTeams(c *gin.Context) {
+	var (
+		ctx    context.Context
+		cancel context.CancelFunc
+	)
+
+	ctx, cancel = context.WithCancel(context.Background())
+	defer cancel()
+
+	c.JSON(http.StatusOK, controller.TeamService.GetAllTeam(ctx))
+}
+
+//GetTeam method returns team by id
+func (controller TeamController) GetTeam(c *gin.Context) {
+	var (
+		ctx    context.Context
+		cancel context.CancelFunc
+	)
+
+	ctx, cancel = context.WithCancel(context.Background())
+	defer cancel()
+	teamid := c.Param("id")
+	c.JSON(http.StatusOK, controller.TeamService.GetTeam(ctx, teamid))
 }
 
 //CreateTeam parses input from request and save the input, returns created team.
-func (controller TeamController) CreateTeam(context *gin.Context) {
-	var request, err = requestmodels.ValidateCreateTeamsRequests(context)
+func (controller TeamController) CreateTeam(c *gin.Context) {
+	var (
+		ctx    context.Context
+		cancel context.CancelFunc
+	)
+
+	ctx, cancel = context.WithCancel(context.Background())
+	defer cancel()
+
+	var request, err = requestmodels.ValidateCreateTeamsRequests(c)
 
 	if err != nil {
-		context.JSON(http.StatusBadRequest, responsemodels.ErrorModel{
+		c.JSON(http.StatusBadRequest, responsemodels.ErrorModel{
 			ErrorCode: http.StatusBadRequest,
 			Message:   err.Error(),
 		})
 	}
 
-	controller.TeamService.CreateTeam(request)
+	controller.TeamService.CreateTeam(ctx, request)
 
 	res := responsemodels.Team{
 		Name:    "Relisource",
 		Players: make([]responsemodels.Player, 11),
 	}
-	context.JSON(http.StatusCreated, res)
+	c.JSON(http.StatusCreated, res)
 }
 
-//AddPlayer adds player into team.
-func (controller TeamController) AddPlayer(context *gin.Context) {
-	var request, err = requestmodels.ValidateAddPlayerRequests(context)
+//UpdateTeam parses input from request and update.
+func (controller TeamController) UpdateTeam(c *gin.Context) {
+	var (
+		ctx    context.Context
+		cancel context.CancelFunc
+	)
 
+	ctx, cancel = context.WithCancel(context.Background())
+	defer cancel()
+
+	var request, err = requestmodels.ValidateUpdateTeamsRequests(c)
+	teamid := c.Param("id")
 	if err != nil {
-		context.JSON(http.StatusBadRequest, responsemodels.ErrorModel{
+		c.JSON(http.StatusBadRequest, responsemodels.ErrorModel{
 			ErrorCode: http.StatusBadRequest,
 			Message:   err.Error(),
 		})
 	}
 
-	res := controller.TeamService.CreatePlayer(request)
+	controller.TeamService.UpdateTeam(ctx, teamid, request)
 
-	context.JSON(http.StatusCreated, res)
+	res := responsemodels.Team{
+		Name:    "Relisource",
+		Players: make([]responsemodels.Player, 11),
+	}
+	c.JSON(http.StatusCreated, res)
+}
+
+//AddPlayer adds player into team.
+func (controller TeamController) AddPlayer(c *gin.Context) {
+	var (
+		ctx    context.Context
+		cancel context.CancelFunc
+	)
+
+	ctx, cancel = context.WithCancel(context.Background())
+	defer cancel()
+
+	teamid := c.Param("id")
+	var request, err = requestmodels.ValidateAddPlayerRequests(c)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, responsemodels.ErrorModel{
+			ErrorCode: http.StatusBadRequest,
+			Message:   err.Error(),
+		})
+	}
+
+	res := controller.TeamService.CreatePlayer(ctx, teamid, request)
+
+	c.JSON(http.StatusCreated, res)
+}
+
+//UpdatePlayer parses input from request and update.
+func (controller TeamController) UpdatePlayer(c *gin.Context) {
+	var (
+		ctx    context.Context
+		cancel context.CancelFunc
+	)
+
+	ctx, cancel = context.WithCancel(context.Background())
+	defer cancel()
+
+	var request, err = requestmodels.ValidateUpdatePlayersRequests(c)
+	playerid := c.Param("playerid")
+	teamid := c.Param("id")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, responsemodels.ErrorModel{
+			ErrorCode: http.StatusBadRequest,
+			Message:   err.Error(),
+		})
+	}
+
+	controller.TeamService.UpdatePlayer(ctx, playerid, teamid, request)
+
+	res := responsemodels.Team{
+		Name:    "Relisource",
+		Players: make([]responsemodels.Player, 11),
+	}
+	c.JSON(http.StatusCreated, res)
 }
 
 //RemovePlayer removes player from team.
-func (controller TeamController) RemovePlayer(context *gin.Context) {
-	playerid := context.Param("playerid")
-	teamid := context.Param("id")
+func (controller TeamController) RemovePlayer(c *gin.Context) {
+	var (
+		ctx    context.Context
+		cancel context.CancelFunc
+	)
 
-	controller.TeamService.RemovePlayer(teamid, playerid)
+	ctx, cancel = context.WithCancel(context.Background())
+	defer cancel()
 
-	context.JSON(http.StatusNoContent, nil)
-}
+	playerid := c.Param("playerid")
+	teamid := c.Param("id")
 
-//UpdateTeam update team partially, and return no content.
-func (controller TeamController) UpdateTeam(context *gin.Context) {
+	controller.TeamService.RemovePlayer(ctx, teamid, playerid)
 
-}
-
-//ValidateCreateTeamsRequests method validates the requests payload of CreateTeams method
-func ValidateCreateTeamsRequests(TeamCreateModel *requestmodels.TeamCreateModel, c *gin.Context) responsemodels.ErrorModel {
-	errorModel := responsemodels.ErrorModel{}
-	if err := c.ShouldBind(&TeamCreateModel); err != nil {
-		errorModel = responsemodels.ErrorModel{
-			ErrorCode: http.StatusBadRequest,
-			Message:   err.Error(),
-		}
-	}
-
-	return errorModel
+	c.JSON(http.StatusNoContent, nil)
 }

@@ -70,16 +70,6 @@ func (repo *TeamRepository) Update(ctx context.Context, id string, updates map[s
 	return repo.GetByID(ctx, id)
 }
 
-//toDoc converts object to bson document
-func toDoc(v interface{}) (doc *bson.D, err error) {
-	data, err := bson.Marshal(v)
-	if err != nil {
-		return
-	}
-
-	err = bson.Unmarshal(data, &doc)
-	return
-}
 
 //GetAll retrieves all team objects from db
 //and return that collection.
@@ -104,8 +94,6 @@ func (repo *TeamRepository) GetAll(ctx context.Context) []domains.Team {
 //GetAllByIds retrieves team objects from db by ids
 //and return that collection.
 func (repo *TeamRepository) GetAllByIds(ctx context.Context, ids []string) []domains.Team {
-	collections := repo.DB.Database.Collection(teamCollectionName)
-
 	oids := []primitive.ObjectID{}
 	for _, val := range ids {
 		oid, err := primitive.ObjectIDFromHex(val)
@@ -114,6 +102,16 @@ func (repo *TeamRepository) GetAllByIds(ctx context.Context, ids []string) []dom
 		}
 		oids = append(oids, oid)
 	}
+	
+
+	return repo.GetAllByObjIds(ctx, oids)
+}
+
+//GetAllByObjIds retrieves team objects from db by ids
+//and return that collection.
+func (repo *TeamRepository) GetAllByObjIds(ctx context.Context, oids []primitive.ObjectID) []domains.Team {
+	collections := repo.DB.Database.Collection(teamCollectionName)
+
 	cursor, err := collections.Find(ctx, bson.M{"id": bson.M{"in": oids}})
 
 	if err != nil {

@@ -29,6 +29,70 @@ var doc = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/series": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Create a series item",
+                "parameters": [
+                    {
+                        "description": "Create Series",
+                        "name": "model",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requestmodels.SeriesCreateModel"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/responsemodels.Series"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responsemodels.ErrorModel"
+                        }
+                    }
+                }
+            }
+        },
+        "/series/:id": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get singe item of series",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Series ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responsemodels.Series"
+                        }
+                    }
+                }
+            }
+        },
         "/teams": {
             "get": {
                 "consumes": [
@@ -312,6 +376,28 @@ var doc = `{
                 }
             }
         },
+        "requestmodels.SeriesCreateModel": {
+            "type": "object",
+            "required": [
+                "gameType",
+                "name",
+                "teams"
+            ],
+            "properties": {
+                "gameType": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "teams": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "requestmodels.TeamCreateModel": {
             "type": "object",
             "required": [
@@ -368,6 +454,26 @@ var doc = `{
                 },
                 "teamID": {
                     "type": "string"
+                }
+            }
+        },
+        "responsemodels.Series": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "teams": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/responsemodels.Team"
+                    }
+                },
+                "type": {
+                    "type": "integer"
                 }
             }
         },

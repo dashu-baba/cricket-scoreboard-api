@@ -31,6 +31,17 @@ func NewRouter() *gin.Engine {
 		),
 	)
 
+	gameController := controllers.NewGameController(
+		services.NewGameService(
+			repositories.NewSeriesRepository(
+				driver.ConnectDb(),
+			),
+			repositories.NewTeamRepository(
+				driver.ConnectDb(),
+			),
+		),
+	)
+
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	router.GET("/teams", teamController.GetTeams)
 	router.POST("/teams", teamController.CreateTeam)
@@ -39,6 +50,9 @@ func NewRouter() *gin.Engine {
 	router.POST("/teams/:id/players", teamController.AddPlayer)
 	router.DELETE("/teams/:id/players/:playerid", teamController.RemovePlayer)
 	router.PUT("/teams/:id/players/:playerid", teamController.UpdatePlayer)
+
+	router.POST("/series", gameController.CreateSeries)
+	router.GET("/series/:id", gameController.GetSeries)
 
 	return router
 }

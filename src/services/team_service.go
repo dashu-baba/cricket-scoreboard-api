@@ -111,16 +111,16 @@ func (service *TeamService) CreateTeam(ctx context.Context, model requestmodels.
 	}
 
 	if len(team.Players) > 0 {
-	for _, val := range team.Players {
-		player := responsemodels.Player{
-			ID : 	val.ID.Hex(),
-			Name:       val.Name,
-			PlayerType: val.PlayerType,
-			TeamID:     team.ID.Hex(),
+		for _, val := range team.Players {
+			player := responsemodels.Player{
+				ID : 	val.ID.Hex(),
+				Name:       val.Name,
+				PlayerType: val.PlayerType,
+				TeamID:     team.ID.Hex(),
+			}
+			res.Players = append(res.Players, player)
 		}
-		res.Players = append(res.Players, player)
 	}
-}
 
 	return res;
 }

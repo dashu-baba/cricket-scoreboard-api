@@ -29,6 +29,21 @@ definitions:
     - name
     - playerType
     type: object
+  requestmodels.SeriesCreateModel:
+    properties:
+      gameType:
+        type: integer
+      name:
+        type: string
+      teams:
+        items:
+          type: string
+        type: array
+    required:
+    - gameType
+    - name
+    - teams
+    type: object
   requestmodels.TeamCreateModel:
     properties:
       logo:
@@ -67,6 +82,19 @@ definitions:
       teamID:
         type: string
     type: object
+  responsemodels.Series:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      teams:
+        items:
+          $ref: '#/definitions/responsemodels.Team'
+        type: array
+      type:
+        type: integer
+    type: object
   responsemodels.Team:
     properties:
       id:
@@ -91,6 +119,47 @@ info:
   title: Cricket Scoreboard API
   version: "1.0"
 paths:
+  /series:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Create Series
+        in: body
+        name: model
+        required: true
+        schema:
+          $ref: '#/definitions/requestmodels.SeriesCreateModel'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/responsemodels.Series'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responsemodels.ErrorModel'
+      summary: Create a series item
+  /series/:id:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Series ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responsemodels.Series'
+      summary: Get singe item of series
   /teams:
     get:
       consumes:

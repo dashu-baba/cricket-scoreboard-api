@@ -1,0 +1,249 @@
+definitions:
+  requestmodels.PlayerCreateModel:
+    properties:
+      name:
+        type: string
+      playerType:
+        type: integer
+    required:
+    - name
+    - playerType
+    type: object
+  requestmodels.PlayerModel:
+    properties:
+      name:
+        type: string
+      playerType:
+        type: integer
+    required:
+    - name
+    - playerType
+    type: object
+  requestmodels.PlayerUpdateModel:
+    properties:
+      name:
+        type: string
+      playerType:
+        type: integer
+    required:
+    - name
+    - playerType
+    type: object
+  requestmodels.TeamCreateModel:
+    properties:
+      logo:
+        type: string
+      name:
+        type: string
+      players:
+        items:
+          $ref: '#/definitions/requestmodels.PlayerModel'
+        type: array
+    required:
+    - name
+    type: object
+  requestmodels.TeamUpdateModel:
+    properties:
+      name:
+        type: string
+    required:
+    - name
+    type: object
+  responsemodels.ErrorModel:
+    properties:
+      errorCode:
+        type: integer
+      message:
+        type: string
+    type: object
+  responsemodels.Player:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      playerType:
+        type: integer
+      teamID:
+        type: string
+    type: object
+  responsemodels.Team:
+    properties:
+      id:
+        type: string
+      logo:
+        type: string
+      name:
+        type: string
+      players:
+        items:
+          $ref: '#/definitions/responsemodels.Player'
+        type: array
+    type: object
+info:
+  contact: {}
+  description: This contains the commn REST api to support a modern cricket scoreboard
+    project.
+  license:
+    name: MIT
+    url: https://github.com/dashu-baba/cricket-scoreboard-api/blob/master/LICENSE
+  termsOfService: https://github.com/dashu-baba/cricket-scoreboard-api
+  title: Cricket Scoreboard API
+  version: "1.0"
+paths:
+  /teams:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/responsemodels.Team'
+            type: array
+      summary: Get list of teams
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Create Team
+        in: body
+        name: model
+        required: true
+        schema:
+          $ref: '#/definitions/requestmodels.TeamCreateModel'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/responsemodels.Team'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responsemodels.ErrorModel'
+      summary: Create a team item
+  /teams/:id:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Team ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responsemodels.Team'
+      summary: Get singe item of team
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Update Team
+        in: body
+        name: model
+        required: true
+        schema:
+          $ref: '#/definitions/requestmodels.TeamUpdateModel'
+      - description: Team ID
+        in: path
+        name: string
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204": {}
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responsemodels.ErrorModel'
+      summary: Update a team item
+  /teams/:id/players:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Add Team
+        in: body
+        name: model
+        required: true
+        schema:
+          $ref: '#/definitions/requestmodels.PlayerCreateModel'
+      - description: Team ID
+        in: path
+        name: string
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/responsemodels.Player'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responsemodels.ErrorModel'
+      summary: Add a player to the team item
+  /teams/:id/players/:playerid:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Team ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Player ID
+        in: path
+        name: playerid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204": {}
+      summary: Remove a player from the team item
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Update Team
+        in: body
+        name: model
+        required: true
+        schema:
+          $ref: '#/definitions/requestmodels.PlayerUpdateModel'
+      - description: Team ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Player ID
+        in: path
+        name: playerid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204": {}
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responsemodels.ErrorModel'
+      summary: Update a player item
+swagger: "2.0"

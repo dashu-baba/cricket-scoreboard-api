@@ -1,6 +1,9 @@
 package startup
 
 import (
+	_ "cricket-scoreboard-api/src/docs"
+	"github.com/swaggo/gin-swagger"
+	"github.com/swaggo/gin-swagger/swaggerFiles"
 	"cricket-scoreboard-api/src/controllers"
 	"cricket-scoreboard-api/src/driver"
 	"cricket-scoreboard-api/src/repositories"
@@ -28,6 +31,7 @@ func NewRouter() *gin.Engine {
 		),
 	)
 
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	router.GET("/teams", teamController.GetTeams)
 	router.POST("/teams", teamController.CreateTeam)
 	router.GET("/teams/:id", teamController.GetTeam)

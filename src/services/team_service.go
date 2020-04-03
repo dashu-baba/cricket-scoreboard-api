@@ -77,7 +77,7 @@ func (service *TeamService) GetTeam(ctx context.Context, id string) responsemode
 }
 
 //CreateTeam insert a team item
-func (service *TeamService) CreateTeam(ctx context.Context, model requestmodels.TeamCreateModel) {
+func (service *TeamService) CreateTeam(ctx context.Context, model requestmodels.TeamCreateModel) responsemodels.Team {
 	team := domains.Team{
 		Logo: model.Logo,
 		Name: model.Name,
@@ -102,6 +102,27 @@ func (service *TeamService) CreateTeam(ctx context.Context, model requestmodels.
 
 		service.TeamRepository.Update(ctx, team.ID.Hex(), updates)
 	}
+
+	res := responsemodels.Team{
+		ID : team.ID.Hex(),
+		Logo : team.Logo,
+		Name : team.Name,
+		Players : []responsemodels.Player{},
+	}
+
+	if len(team.Players) > 0 {
+	for _, val := range team.Players {
+		player := responsemodels.Player{
+			ID : 	val.ID.Hex(),
+			Name:       val.Name,
+			PlayerType: val.PlayerType,
+			TeamID:     team.ID.Hex(),
+		}
+		res.Players = append(res.Players, player)
+	}
+}
+
+	return res;
 }
 
 //UpdateTeam update a team item

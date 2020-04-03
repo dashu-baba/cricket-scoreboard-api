@@ -23,7 +23,12 @@ func NewTeamController(TeamService *services.TeamService) *TeamController {
 	}
 }
 
-//GetTeams method returns team lists
+//GetTeams ..
+// @Summary Get list of teams
+// @Accept  json
+// @Produce  json
+// @Success 200 {array} responsemodels.Team
+// @Router /teams [get]
 func (controller TeamController) GetTeams(c *gin.Context) {
 	var (
 		ctx    context.Context
@@ -36,7 +41,13 @@ func (controller TeamController) GetTeams(c *gin.Context) {
 	c.JSON(http.StatusOK, controller.TeamService.GetAllTeam(ctx))
 }
 
-//GetTeam method returns team by id
+//GetTeam ..
+// @Summary Get singe item of team
+// @Accept  json
+// @Produce  json
+// @Param id path string true "Team ID" string
+// @Success 200 {object} responsemodels.Team
+// @Router /teams/:id [get]
 func (controller TeamController) GetTeam(c *gin.Context) {
 	var (
 		ctx    context.Context
@@ -49,7 +60,14 @@ func (controller TeamController) GetTeam(c *gin.Context) {
 	c.JSON(http.StatusOK, controller.TeamService.GetTeam(ctx, teamid))
 }
 
-//CreateTeam parses input from request and save the input, returns created team.
+//CreateTeam ...
+// @Summary Create a team item
+// @Accept  json
+// @Produce  json
+// @Param model body requestmodels.TeamCreateModel true "Create Team"
+// @Success 201 {object} responsemodels.Team
+// @Failure 400 {object} responsemodels.ErrorModel
+// @Router /teams [post]
 func (controller TeamController) CreateTeam(c *gin.Context) {
 	var (
 		ctx    context.Context
@@ -68,16 +86,20 @@ func (controller TeamController) CreateTeam(c *gin.Context) {
 		})
 	}
 
-	controller.TeamService.CreateTeam(ctx, request)
+	res := controller.TeamService.CreateTeam(ctx, request)
 
-	res := responsemodels.Team{
-		Name:    "Relisource",
-		Players: make([]responsemodels.Player, 11),
-	}
 	c.JSON(http.StatusCreated, res)
 }
 
-//UpdateTeam parses input from request and update.
+//UpdateTeam ...
+// @Summary Update a team item
+// @Accept  json
+// @Produce json
+// @Param model body requestmodels.TeamUpdateModel true "Update Team"
+// @Param string path int true "Team ID" string
+// @Success 204 
+// @Failure 400 {object} responsemodels.ErrorModel
+// @Router /teams/:id [put]
 func (controller TeamController) UpdateTeam(c *gin.Context) {
 	var (
 		ctx    context.Context
@@ -105,7 +127,15 @@ func (controller TeamController) UpdateTeam(c *gin.Context) {
 	c.JSON(http.StatusCreated, res)
 }
 
-//AddPlayer adds player into team.
+//AddPlayer ...
+// @Summary Add a player to the team item
+// @Accept  json
+// @Produce json
+// @Param model body requestmodels.PlayerCreateModel true "Add Team"
+// @Param string path int true "Team ID" string
+// @Success 201 {object} responsemodels.Player 
+// @Failure 400 {object} responsemodels.ErrorModel
+// @Router /teams/:id/players [post]
 func (controller TeamController) AddPlayer(c *gin.Context) {
 	var (
 		ctx    context.Context
@@ -130,7 +160,16 @@ func (controller TeamController) AddPlayer(c *gin.Context) {
 	c.JSON(http.StatusCreated, res)
 }
 
-//UpdatePlayer parses input from request and update.
+//UpdatePlayer ...
+// @Summary Update a player item
+// @Accept  json
+// @Produce json
+// @Param model body requestmodels.PlayerUpdateModel true "Update Team"
+// @Param id path string true "Team ID" string
+// @Param playerid path string true "Player ID" string
+// @Success 204
+// @Failure 400 {object} responsemodels.ErrorModel
+// @Router /teams/:id/players/:playerid [put]
 func (controller TeamController) UpdatePlayer(c *gin.Context) {
 	var (
 		ctx    context.Context
@@ -159,7 +198,14 @@ func (controller TeamController) UpdatePlayer(c *gin.Context) {
 	c.JSON(http.StatusCreated, res)
 }
 
-//RemovePlayer removes player from team.
+//RemovePlayer ...
+// @Summary Remove a player from the team item
+// @Accept  json
+// @Produce json
+// @Param id path string true "Team ID" string
+// @Param playerid path string true "Player ID" string
+// @Success 204
+// @Router /teams/:id/players/:playerid [delete]
 func (controller TeamController) RemovePlayer(c *gin.Context) {
 	var (
 		ctx    context.Context

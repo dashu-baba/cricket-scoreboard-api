@@ -64,6 +64,15 @@ definitions:
     required:
     - name
     type: object
+  requestmodels.TeamsAddRemoveModel:
+    properties:
+      teams:
+        items:
+          type: string
+        type: array
+    required:
+    - teams
+    type: object
   responsemodels.ErrorModel:
     properties:
       errorCode:
@@ -142,6 +151,8 @@ paths:
           schema:
             $ref: '#/definitions/responsemodels.ErrorModel'
       summary: Create a series item
+      tags:
+      - Game
   /series/:id:
     get:
       consumes:
@@ -160,6 +171,64 @@ paths:
           schema:
             $ref: '#/definitions/responsemodels.Series'
       summary: Get singe item of series
+      tags:
+      - Game
+  /series/:id/teams:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Remove Teams
+        in: body
+        name: model
+        required: true
+        schema:
+          $ref: '#/definitions/requestmodels.TeamsAddRemoveModel'
+      - description: Series ID
+        in: path
+        name: string
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204": {}
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responsemodels.ErrorModel'
+      summary: Remove list of teams to the series item
+      tags:
+      - Game
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Add Teams
+        in: body
+        name: model
+        required: true
+        schema:
+          $ref: '#/definitions/requestmodels.TeamsAddRemoveModel'
+      - description: Series ID
+        in: path
+        name: string
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/responsemodels.Series'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responsemodels.ErrorModel'
+      summary: Add list of teams to the series item
+      tags:
+      - Game
   /teams:
     get:
       consumes:
@@ -174,6 +243,8 @@ paths:
               $ref: '#/definitions/responsemodels.Team'
             type: array
       summary: Get list of teams
+      tags:
+      - Teams
     post:
       consumes:
       - application/json
@@ -196,6 +267,8 @@ paths:
           schema:
             $ref: '#/definitions/responsemodels.ErrorModel'
       summary: Create a team item
+      tags:
+      - Teams
   /teams/:id:
     get:
       consumes:
@@ -214,6 +287,8 @@ paths:
           schema:
             $ref: '#/definitions/responsemodels.Team'
       summary: Get singe item of team
+      tags:
+      - Teams
     put:
       consumes:
       - application/json
@@ -238,6 +313,8 @@ paths:
           schema:
             $ref: '#/definitions/responsemodels.ErrorModel'
       summary: Update a team item
+      tags:
+      - Teams
   /teams/:id/players:
     post:
       consumes:
@@ -266,6 +343,8 @@ paths:
           schema:
             $ref: '#/definitions/responsemodels.ErrorModel'
       summary: Add a player to the team item
+      tags:
+      - Teams
   /teams/:id/players/:playerid:
     delete:
       consumes:
@@ -286,6 +365,8 @@ paths:
       responses:
         "204": {}
       summary: Remove a player from the team item
+      tags:
+      - Teams
     put:
       consumes:
       - application/json
@@ -315,4 +396,6 @@ paths:
           schema:
             $ref: '#/definitions/responsemodels.ErrorModel'
       summary: Update a player item
+      tags:
+      - Teams
 swagger: "2.0"

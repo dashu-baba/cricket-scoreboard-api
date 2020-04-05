@@ -25,6 +25,7 @@ func NewTeamController(TeamService *services.TeamService) *TeamController {
 
 //GetTeams ..
 // @Summary Get list of teams
+// @Tags Teams
 // @Accept  json
 // @Produce  json
 // @Success 200 {array} responsemodels.Team
@@ -43,6 +44,7 @@ func (controller TeamController) GetTeams(c *gin.Context) {
 
 //GetTeam ..
 // @Summary Get singe item of team
+// @Tags Teams
 // @Accept  json
 // @Produce  json
 // @Param id path string true "Team ID" string
@@ -62,6 +64,7 @@ func (controller TeamController) GetTeam(c *gin.Context) {
 
 //CreateTeam ...
 // @Summary Create a team item
+// @Tags Teams
 // @Accept  json
 // @Produce  json
 // @Param model body requestmodels.TeamCreateModel true "Create Team"
@@ -93,11 +96,12 @@ func (controller TeamController) CreateTeam(c *gin.Context) {
 
 //UpdateTeam ...
 // @Summary Update a team item
+// @Tags Teams
 // @Accept  json
 // @Produce json
 // @Param model body requestmodels.TeamUpdateModel true "Update Team"
 // @Param string path int true "Team ID" string
-// @Success 204 
+// @Success 204
 // @Failure 400 {object} responsemodels.ErrorModel
 // @Router /teams/:id [put]
 func (controller TeamController) UpdateTeam(c *gin.Context) {
@@ -129,11 +133,12 @@ func (controller TeamController) UpdateTeam(c *gin.Context) {
 
 //AddPlayer ...
 // @Summary Add a player to the team item
+// @Tags Teams
 // @Accept  json
 // @Produce json
 // @Param model body requestmodels.PlayerCreateModel true "Add Team"
 // @Param string path int true "Team ID" string
-// @Success 201 {object} responsemodels.Player 
+// @Success 201 {object} responsemodels.Player
 // @Failure 400 {object} responsemodels.ErrorModel
 // @Router /teams/:id/players [post]
 func (controller TeamController) AddPlayer(c *gin.Context) {
@@ -162,6 +167,7 @@ func (controller TeamController) AddPlayer(c *gin.Context) {
 
 //UpdatePlayer ...
 // @Summary Update a player item
+// @Tags Teams
 // @Accept  json
 // @Produce json
 // @Param model body requestmodels.PlayerUpdateModel true "Update Team"
@@ -200,6 +206,7 @@ func (controller TeamController) UpdatePlayer(c *gin.Context) {
 
 //RemovePlayer ...
 // @Summary Remove a player from the team item
+// @Tags Teams
 // @Accept  json
 // @Produce json
 // @Param id path string true "Team ID" string

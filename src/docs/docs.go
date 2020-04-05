@@ -37,6 +37,9 @@ var doc = `{
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "Game"
+                ],
                 "summary": "Create a series item",
                 "parameters": [
                     {
@@ -73,6 +76,9 @@ var doc = `{
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "Game"
+                ],
                 "summary": "Get singe item of series",
                 "parameters": [
                     {
@@ -93,6 +99,91 @@ var doc = `{
                 }
             }
         },
+        "/series/:id/teams": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Game"
+                ],
+                "summary": "Add list of teams to the series item",
+                "parameters": [
+                    {
+                        "description": "Add Teams",
+                        "name": "model",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requestmodels.TeamsAddRemoveModel"
+                        }
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Series ID",
+                        "name": "string",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/responsemodels.Series"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responsemodels.ErrorModel"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Game"
+                ],
+                "summary": "Remove list of teams to the series item",
+                "parameters": [
+                    {
+                        "description": "Remove Teams",
+                        "name": "model",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requestmodels.TeamsAddRemoveModel"
+                        }
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Series ID",
+                        "name": "string",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {},
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responsemodels.ErrorModel"
+                        }
+                    }
+                }
+            }
+        },
         "/teams": {
             "get": {
                 "consumes": [
@@ -100,6 +191,9 @@ var doc = `{
                 ],
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "Teams"
                 ],
                 "summary": "Get list of teams",
                 "responses": {
@@ -120,6 +214,9 @@ var doc = `{
                 ],
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "Teams"
                 ],
                 "summary": "Create a team item",
                 "parameters": [
@@ -157,6 +254,9 @@ var doc = `{
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "Teams"
+                ],
                 "summary": "Get singe item of team",
                 "parameters": [
                     {
@@ -182,6 +282,9 @@ var doc = `{
                 ],
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "Teams"
                 ],
                 "summary": "Update a team item",
                 "parameters": [
@@ -220,6 +323,9 @@ var doc = `{
                 ],
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "Teams"
                 ],
                 "summary": "Add a player to the team item",
                 "parameters": [
@@ -264,6 +370,9 @@ var doc = `{
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "Teams"
+                ],
                 "summary": "Update a player item",
                 "parameters": [
                     {
@@ -306,6 +415,9 @@ var doc = `{
                 ],
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "Teams"
                 ],
                 "summary": "Remove a player from the team item",
                 "parameters": [
@@ -429,6 +541,20 @@ var doc = `{
                 }
             }
         },
+        "requestmodels.TeamsAddRemoveModel": {
+            "type": "object",
+            "required": [
+                "teams"
+            ],
+            "properties": {
+                "teams": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "responsemodels.ErrorModel": {
             "type": "object",
             "properties": {
@@ -510,11 +636,11 @@ type swaggerInfo struct {
 }
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
-var SwaggerInfo = swaggerInfo{ 
+var SwaggerInfo = swaggerInfo{
 	Version:     "1.0",
- 	Host:        "",
+	Host:        "",
 	BasePath:    "",
-	Schemes:     []string{  },
+	Schemes:     []string{},
 	Title:       "Cricket Scoreboard API",
 	Description: "This contains the commn REST api to support a modern cricket scoreboard project.",
 }

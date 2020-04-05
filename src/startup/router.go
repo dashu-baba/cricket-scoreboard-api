@@ -1,13 +1,14 @@
 package startup
 
 import (
-	_ "cricket-scoreboard-api/src/docs"
-	"github.com/swaggo/gin-swagger"
-	"github.com/swaggo/gin-swagger/swaggerFiles"
 	"cricket-scoreboard-api/src/controllers"
+	_ "cricket-scoreboard-api/src/docs"
 	"cricket-scoreboard-api/src/driver"
 	"cricket-scoreboard-api/src/repositories"
 	"cricket-scoreboard-api/src/services"
+
+	ginSwagger "github.com/swaggo/gin-swagger"
+	"github.com/swaggo/gin-swagger/swaggerFiles"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -43,16 +44,26 @@ func NewRouter() *gin.Engine {
 	)
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	router.GET("/teams", teamController.GetTeams)
-	router.POST("/teams", teamController.CreateTeam)
-	router.GET("/teams/:id", teamController.GetTeam)
-	router.PUT("/teams/:id", teamController.UpdateTeam)
-	router.POST("/teams/:id/players", teamController.AddPlayer)
-	router.DELETE("/teams/:id/players/:playerid", teamController.RemovePlayer)
-	router.PUT("/teams/:id/players/:playerid", teamController.UpdatePlayer)
-
-	router.POST("/series", gameController.CreateSeries)
-	router.GET("/series/:id", gameController.GetSeries)
+	v1 := router.Group("/api/v1")
+	{
+		teams := v1.Group("/teams")
+		{
+			teams.GET("", teamController.GetTeams)
+			teams.POST("", teamController.CreateTeam)
+			teams.GET(":id", teamController.GetTeam)
+			teams.PUT(":id", teamController.UpdateTeam)
+			teams.POST(":id/players", teamController.AddPlayer)
+			teams.DELETE(":id/players/:playerid", teamController.RemovePlayer)
+			teams.PUT(":id/players/:playerid", teamController.UpdatePlayer)
+		}
+		series := v1.Group("/series")
+		{
+			series.POST("", gameController.CreateSeries)
+			series.GET(":id", gameController.GetSeries)
+			series.POST(":id/teams", gameController.AddTeams)
+			series.DELETE(":id/teams", gameController.RemoveTeams)
+		}
+	}
 
 	return router
 }

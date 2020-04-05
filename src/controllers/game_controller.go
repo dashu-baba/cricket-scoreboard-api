@@ -19,7 +19,7 @@ type GameController struct {
 //NewGameController returns a new instance of GameController.
 func NewGameController(gameService *services.GameService) *GameController {
 	return &GameController{
-		GameService : gameService,
+		GameService: gameService,
 	}
 }
 
@@ -43,6 +43,7 @@ func NewGameController(gameService *services.GameService) *GameController {
 
 //GetSeries ..
 // @Summary Get singe item of series
+// @Tags Game
 // @Accept  json
 // @Produce  json
 // @Param id path string true "Series ID" string
@@ -62,6 +63,7 @@ func (controller GameController) GetSeries(c *gin.Context) {
 
 //CreateSeries ...
 // @Summary Create a series item
+// @Tags Game
 // @Accept  json
 // @Produce  json
 // @Param model body requestmodels.SeriesCreateModel true "Create Series"
@@ -97,7 +99,7 @@ func (controller GameController) CreateSeries(c *gin.Context) {
 // // @Produce json
 // // @Param model body requestmodels.SeriesUpdateModel true "Update Series"
 // // @Param string path int true "Series ID" string
-// // @Success 204 
+// // @Success 204
 // // @Failure 400 {object} responsemodels.ErrorModel
 // // @Router /teams/:id [put]
 // func (controller GameController) UpdateSeries(c *gin.Context) {
@@ -127,38 +129,80 @@ func (controller GameController) CreateSeries(c *gin.Context) {
 // 	c.JSON(http.StatusCreated, res)
 // }
 
-// //AddPlayer ...
-// // @Summary Add a player to the team item
-// // @Accept  json
-// // @Produce json
-// // @Param model body requestmodels.PlayerCreateModel true "Add Series"
-// // @Param string path int true "Series ID" string
-// // @Success 201 {object} responsemodels.Player 
-// // @Failure 400 {object} responsemodels.ErrorModel
-// // @Router /teams/:id/players [post]
-// func (controller GameController) AddPlayer(c *gin.Context) {
-// 	var (
-// 		ctx    context.Context
-// 		cancel context.CancelFunc
-// 	)
+//AddTeams ...
+// @Summary Add list of teams to the series item
+// @Tags Game
+// @Accept  json
+// @Produce json
+// @Param model body requestmodels.TeamsAddRemoveModel true "Add Teams"
+// @Param string path int true "Series ID" string
+// @Success 201 {object} responsemodels.Series
+// @Failure 400 {object} responsemodels.ErrorModel
+// @Router /series/:id/teams [post]
+func (controller GameController) AddTeams(c *gin.Context) {
+	var (
+		ctx    context.Context
+		cancel context.CancelFunc
+	)
 
-// 	ctx, cancel = context.WithCancel(context.Background())
-// 	defer cancel()
+	ctx, cancel = context.WithCancel(context.Background())
+	defer cancel()
 
-// 	seriesid := c.Param("id")
-// 	var request, err = requestmodels.ValidateAddPlayerRequests(c)
+	seriesid := c.Param("id")
+	var request, err = requestmodels.ValidateAddRemoveTeamRequests(c)
 
-// 	if err != nil {
-// 		c.JSON(http.StatusBadRequest, responsemodels.ErrorModel{
-// 			ErrorCode: http.StatusBadRequest,
-// 			Message:   err.Error(),
-// 		})
-// 	}
+	if err != nil {
+		c.JSON(http.StatusBadRequest, responsemodels.ErrorModel{
+			ErrorCode: http.StatusBadRequest,
+			Message:   err.Error(),
+		})
+	}
 
-// 	res := controller.SeriesService.CreatePlayer(ctx, seriesid, request)
+	res, err := controller.GameService.AddTeam(ctx, seriesid, request)
 
-// 	c.JSON(http.StatusCreated, res)
-// }
+	if err != nil {
+		c.JSON(http.StatusBadRequest, responsemodels.ErrorModel{
+			ErrorCode: http.StatusBadRequest,
+			Message:   err.Error(),
+		})
+	}
+
+	c.JSON(http.StatusCreated, res)
+}
+
+//RemoveTeams ...
+// @Summary Remove list of teams to the series item
+// @Tags Game
+// @Accept  json
+// @Produce json
+// @Param model body requestmodels.TeamsAddRemoveModel true "Remove Teams"
+// @Param string path int true "Series ID" string
+// @Success 204
+// @Failure 400 {object} responsemodels.ErrorModel
+// @Router /series/:id/teams [delete]
+func (controller GameController) RemoveTeams(c *gin.Context) {
+	var (
+		ctx    context.Context
+		cancel context.CancelFunc
+	)
+
+	ctx, cancel = context.WithCancel(context.Background())
+	defer cancel()
+
+	seriesid := c.Param("id")
+	var request, err = requestmodels.ValidateAddRemoveTeamRequests(c)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, responsemodels.ErrorModel{
+			ErrorCode: http.StatusBadRequest,
+			Message:   err.Error(),
+		})
+	}
+
+	controller.GameService.RemoveTeam(ctx, seriesid, request)
+
+	c.JSON(http.StatusNoContent, nil)
+}
 
 // //UpdatePlayer ...
 // // @Summary Update a player item

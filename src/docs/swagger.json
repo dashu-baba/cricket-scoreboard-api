@@ -20,6 +20,9 @@
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "Game"
+                ],
                 "summary": "Create a series item",
                 "parameters": [
                     {
@@ -56,6 +59,9 @@
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "Game"
+                ],
                 "summary": "Get singe item of series",
                 "parameters": [
                     {
@@ -76,6 +82,91 @@
                 }
             }
         },
+        "/series/:id/teams": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Game"
+                ],
+                "summary": "Add list of teams to the series item",
+                "parameters": [
+                    {
+                        "description": "Add Teams",
+                        "name": "model",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requestmodels.TeamsAddRemoveModel"
+                        }
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Series ID",
+                        "name": "string",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/responsemodels.Series"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responsemodels.ErrorModel"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Game"
+                ],
+                "summary": "Remove list of teams to the series item",
+                "parameters": [
+                    {
+                        "description": "Remove Teams",
+                        "name": "model",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requestmodels.TeamsAddRemoveModel"
+                        }
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Series ID",
+                        "name": "string",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {},
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responsemodels.ErrorModel"
+                        }
+                    }
+                }
+            }
+        },
         "/teams": {
             "get": {
                 "consumes": [
@@ -83,6 +174,9 @@
                 ],
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "Teams"
                 ],
                 "summary": "Get list of teams",
                 "responses": {
@@ -103,6 +197,9 @@
                 ],
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "Teams"
                 ],
                 "summary": "Create a team item",
                 "parameters": [
@@ -140,6 +237,9 @@
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "Teams"
+                ],
                 "summary": "Get singe item of team",
                 "parameters": [
                     {
@@ -165,6 +265,9 @@
                 ],
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "Teams"
                 ],
                 "summary": "Update a team item",
                 "parameters": [
@@ -203,6 +306,9 @@
                 ],
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "Teams"
                 ],
                 "summary": "Add a player to the team item",
                 "parameters": [
@@ -247,6 +353,9 @@
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "Teams"
+                ],
                 "summary": "Update a player item",
                 "parameters": [
                     {
@@ -289,6 +398,9 @@
                 ],
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "Teams"
                 ],
                 "summary": "Remove a player from the team item",
                 "parameters": [
@@ -409,6 +521,20 @@
             "properties": {
                 "name": {
                     "type": "string"
+                }
+            }
+        },
+        "requestmodels.TeamsAddRemoveModel": {
+            "type": "object",
+            "required": [
+                "teams"
+            ],
+            "properties": {
+                "teams": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },

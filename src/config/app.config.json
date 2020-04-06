@@ -1,9 +1,0 @@
-{
-    "db" : {
-        "endpoint" : "mongodb://localhost:27017"
-    },
-    "server" : {
-        "host" : "localhost",
-        "port" : "8081"
-    }
-}

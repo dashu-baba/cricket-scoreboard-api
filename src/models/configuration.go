@@ -1,8 +1,9 @@
 package models
 
 import (
+	"github.com/joho/godotenv"
+	"log"
 	"os"
-	"path/filepath"
 )
 
 var (
@@ -14,32 +15,31 @@ var (
 type Config struct {
 	//Db denotes database configuration
 	Db struct {
-		EndPoint string `json:"endpoint"`
-	} `json:"db"`
+		EndPoint string
+		Name     string
+	}
 	//Server denotes database configuration
 	Server struct {
-		Host string `json:"host"`
-		Port string `json:"port"`
-	} `json:"server"`
+		Port string
+	}
 }
 
 //New creates a new instance of Config
-func New(fileName string) Config {
-
+func New() Config {
 	config := Config{}
 	config.Db.EndPoint = os.Getenv("DB_CONN")
-	config.Server.Host = os.Getenv("HOST")
+	config.Db.Name = os.Getenv("DB_NAME")
 	config.Server.Port = os.Getenv("PORT")
-
 	return config
 }
 
 //init sets up the initial states
 func init() {
-	dir, err := os.Getwd()
+	// Load environment variable from .env file
+	err := godotenv.Load(".env")
 	if err != nil {
-		panic(err)
+		log.Printf("Error loading env file %v", err)
 	}
 
-	Configuration = New(filepath.Join(dir, "config", "app.config.json"))
+	Configuration = New()
 }

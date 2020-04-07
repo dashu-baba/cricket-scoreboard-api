@@ -1,0 +1,6 @@
+Current Task : Addition of 
+
+1. Update following methods in respect of match participants
+    a. RemovePlayer add validation for in squad Player
+    b. UpdatePlayer should reflect to match->participants entity
+    c. UpdateTeam should reflect to match entity

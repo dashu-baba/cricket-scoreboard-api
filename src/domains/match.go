@@ -10,12 +10,13 @@ import (
 // Match godoc
 // @Summary Define Match model
 type Match struct {
-	ID        primitive.ObjectID
-	Number    int
-	MatchType models.MatchType
-	OverLimit int
-	Result    MatchResult
-	SeriesID  primitive.ObjectID
+	ID           primitive.ObjectID
+	Number       int
+	MatchType    models.MatchType
+	OverLimit    int
+	Result       MatchResult
+	SeriesID     primitive.ObjectID
+	Participants []primitive.ObjectID
 }
 
 // MatchResult godoc

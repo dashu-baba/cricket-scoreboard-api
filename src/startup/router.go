@@ -40,30 +40,36 @@ func NewRouter() *gin.Engine {
 			repositories.NewTeamRepository(
 				driver.ConnectDb(),
 			),
+			repositories.NewMatchRepository(
+				driver.ConnectDb(),
+			),
+			repositories.NewPlayerRepository(
+				driver.ConnectDb(),
+			),
 		),
 	)
 
-	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	v1 := router.Group("/api/v1")
+	teams := router.Group("/teams")
 	{
-		teams := v1.Group("/teams")
-		{
-			teams.GET("", teamController.GetTeams)
-			teams.POST("", teamController.CreateTeam)
-			teams.GET(":id", teamController.GetTeam)
-			teams.PUT(":id", teamController.UpdateTeam)
-			teams.POST(":id/players", teamController.AddPlayer)
-			teams.DELETE(":id/players/:playerid", teamController.RemovePlayer)
-			teams.PUT(":id/players/:playerid", teamController.UpdatePlayer)
-		}
-		series := v1.Group("/series")
-		{
-			series.POST("", gameController.CreateSeries)
-			series.GET(":id", gameController.GetSeries)
-			series.POST(":id/teams", gameController.AddTeams)
-			series.DELETE(":id/teams", gameController.RemoveTeams)
-		}
+		teams.GET("", teamController.GetTeams)
+		teams.POST("", teamController.CreateTeam)
+		teams.GET(":id", teamController.GetTeam)
+		teams.PUT(":id", teamController.UpdateTeam)
+		teams.POST(":id/players", teamController.AddPlayer)
+		teams.DELETE(":id/players/:playerid", teamController.RemovePlayer)
+		teams.PUT(":id/players/:playerid", teamController.UpdatePlayer)
 	}
+	series := router.Group("/series")
+	{
+		series.POST("", gameController.CreateSeries)
+		series.GET(":id", gameController.GetSeries)
+		series.PATCH(":id", gameController.UpdateSeriesStatus)
+		series.POST(":id/teams", gameController.AddTeams)
+		series.DELETE(":id/teams", gameController.RemoveTeams)
+		series.PUT(":id/teams/:teamid", gameController.UpdateSquad)
+		series.POST(":id/matches", gameController.CreateMatches)
+	}
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	return router
 }

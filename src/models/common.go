@@ -41,6 +41,19 @@ const (
 	Bilateral GameType = 1
 )
 
+// SeriesState godoc
+// @Summary Define different state of series
+type SeriesState int
+
+const (
+	// NotStarted godoc
+	NotStarted SeriesState = 0
+	// OnGoing godoc
+	OnGoing SeriesState = 1
+	// Finished godoc
+	Finished SeriesState = 2
+)
+
 // ResultType godoc
 // @Summary Define different types of game result
 type ResultType int

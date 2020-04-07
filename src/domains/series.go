@@ -13,5 +13,13 @@ type Series struct {
 	ID       primitive.ObjectID
 	Name     string
 	GameType models.GameType
-	Teams    []primitive.ObjectID
+	Teams    []SeriesParticipant
+	Status   models.SeriesState
+}
+
+// SeriesParticipant godoc
+// @Summary Define Series paticipant teams with squads.
+type SeriesParticipant struct {
+	TeamID       primitive.ObjectID
+	SquadPlayers []primitive.ObjectID
 }

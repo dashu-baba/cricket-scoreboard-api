@@ -70,7 +70,6 @@ func (repo *TeamRepository) Update(ctx context.Context, id string, updates map[s
 	return repo.GetByID(ctx, id)
 }
 
-
 //GetAll retrieves all team objects from db
 //and return that collection.
 func (repo *TeamRepository) GetAll(ctx context.Context) []domains.Team {
@@ -102,7 +101,6 @@ func (repo *TeamRepository) GetAllByIds(ctx context.Context, ids []string) []dom
 		}
 		oids = append(oids, oid)
 	}
-	
 
 	return repo.GetAllByObjIds(ctx, oids)
 }
@@ -112,7 +110,7 @@ func (repo *TeamRepository) GetAllByIds(ctx context.Context, ids []string) []dom
 func (repo *TeamRepository) GetAllByObjIds(ctx context.Context, oids []primitive.ObjectID) []domains.Team {
 	collections := repo.DB.Database.Collection(teamCollectionName)
 
-	cursor, err := collections.Find(ctx, bson.M{"id": bson.M{"in": oids}})
+	cursor, err := collections.Find(ctx, bson.M{"id": bson.M{"$in": oids}})
 
 	if err != nil {
 		panic(err)

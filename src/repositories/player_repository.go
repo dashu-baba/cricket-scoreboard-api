@@ -128,3 +128,33 @@ func (repo *PlayerRepository) GetAll(ctx context.Context, teamID string) []domai
 
 	return players
 }
+
+//GetAllByIds godoc
+//Find player collection by a collection of id and returns the collection
+func (repo *PlayerRepository) GetAllByIds(ctx context.Context, ids []string) []domains.Player {
+	oids := []primitive.ObjectID{}
+	for _, val := range ids {
+		oid, err := primitive.ObjectIDFromHex(val)
+		if err != nil {
+			panic(err)
+		}
+		oids = append(oids, oid)
+	}
+
+	collections := repo.DB.Database.Collection(collectionName)
+
+	cursor, err := collections.Find(ctx, bson.M{"id": bson.M{"$in": oids}})
+
+	if err != nil {
+		panic(err)
+	}
+
+	players := []domains.Player{}
+	for cursor.Next(ctx) {
+		player := domains.Player{}
+		cursor.Decode(&player)
+		players = append(players, player)
+	}
+
+	return players
+}

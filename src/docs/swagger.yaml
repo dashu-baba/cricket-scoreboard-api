@@ -1,4 +1,28 @@
 definitions:
+  requestmodels.Match:
+    properties:
+      matchType:
+        type: integer
+      overLimit:
+        type: integer
+      participants:
+        items:
+          type: string
+        type: array
+    required:
+    - matchType
+    - overLimit
+    - participants
+    type: object
+  requestmodels.MatchCreateModel:
+    properties:
+      matches:
+        items:
+          $ref: '#/definitions/requestmodels.Match'
+        type: array
+    required:
+    - matches
+    type: object
   requestmodels.PlayerCreateModel:
     properties:
       name:
@@ -37,12 +61,24 @@ definitions:
         type: string
       teams:
         items:
-          type: string
+          $ref: '#/definitions/requestmodels.SeriesParticipantModel'
         type: array
     required:
     - gameType
     - name
     - teams
+    type: object
+  requestmodels.SeriesParticipantModel:
+    properties:
+      squadPlayers:
+        items:
+          type: string
+        type: array
+      teamId:
+        type: string
+    required:
+    - squadPlayers
+    - teamId
     type: object
   requestmodels.TeamCreateModel:
     properties:
@@ -64,7 +100,16 @@ definitions:
     required:
     - name
     type: object
-  requestmodels.TeamsAddRemoveModel:
+  requestmodels.TeamsAddModel:
+    properties:
+      teams:
+        items:
+          $ref: '#/definitions/requestmodels.SeriesParticipantModel'
+        type: array
+    required:
+    - teams
+    type: object
+  requestmodels.TeamsRemoveModel:
     properties:
       teams:
         items:
@@ -72,6 +117,24 @@ definitions:
         type: array
     required:
     - teams
+    type: object
+  requestmodels.UpdateSeriesStatusModel:
+    properties:
+      status:
+        type: integer
+    required:
+    - status
+    type: object
+  requestmodels.UpdateSquadModel:
+    properties:
+      addedPlayer:
+        items:
+          type: string
+        type: array
+      removedPlayer:
+        items:
+          type: string
+        type: array
     type: object
   responsemodels.ErrorModel:
     properties:
@@ -97,6 +160,8 @@ definitions:
         type: string
       name:
         type: string
+      status:
+        type: integer
       teams:
         items:
           $ref: '#/definitions/responsemodels.Team'
@@ -169,8 +234,75 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/responsemodels.Series'
+            items:
+              $ref: '#/definitions/responsemodels.Team'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responsemodels.ErrorModel'
       summary: Get singe item of series
+      tags:
+      - Game
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Update Series Status Model
+        in: body
+        name: model
+        required: true
+        schema:
+          $ref: '#/definitions/requestmodels.UpdateSeriesStatusModel'
+      - description: Series ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204": {}
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responsemodels.ErrorModel'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responsemodels.ErrorModel'
+      summary: Update series status
+      tags:
+      - Game
+  /series/:id/matches:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Create Matches
+        in: body
+        name: model
+        required: true
+        schema:
+          $ref: '#/definitions/requestmodels.MatchCreateModel'
+      - description: Series ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204": {}
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responsemodels.ErrorModel'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responsemodels.ErrorModel'
+      summary: Create list of matches under a series
       tags:
       - Game
   /series/:id/teams:
@@ -183,18 +315,22 @@ paths:
         name: model
         required: true
         schema:
-          $ref: '#/definitions/requestmodels.TeamsAddRemoveModel'
+          $ref: '#/definitions/requestmodels.TeamsRemoveModel'
       - description: Series ID
         in: path
-        name: string
+        name: id
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
         "204": {}
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/responsemodels.ErrorModel'
+        "404":
+          description: Not Found
           schema:
             $ref: '#/definitions/responsemodels.ErrorModel'
       summary: Remove list of teams to the series item
@@ -209,12 +345,12 @@ paths:
         name: model
         required: true
         schema:
-          $ref: '#/definitions/requestmodels.TeamsAddRemoveModel'
+          $ref: '#/definitions/requestmodels.TeamsAddModel'
       - description: Series ID
         in: path
-        name: string
+        name: id
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -226,7 +362,47 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/responsemodels.ErrorModel'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responsemodels.ErrorModel'
       summary: Add list of teams to the series item
+      tags:
+      - Game
+  /series/:id/teams/:teamid:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Update Squad model
+        in: body
+        name: model
+        required: true
+        schema:
+          $ref: '#/definitions/requestmodels.UpdateSquadModel'
+      - description: Series ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Team ID
+        in: path
+        name: teamid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204": {}
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responsemodels.ErrorModel'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responsemodels.ErrorModel'
+      summary: Update
       tags:
       - Game
   /teams:

@@ -93,7 +93,108 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responsemodels.Series"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/responsemodels.Team"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/responsemodels.ErrorModel"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Game"
+                ],
+                "summary": "Update series status",
+                "parameters": [
+                    {
+                        "description": "Update Series Status Model",
+                        "name": "model",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requestmodels.UpdateSeriesStatusModel"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Series ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {},
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responsemodels.ErrorModel"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/responsemodels.ErrorModel"
+                        }
+                    }
+                }
+            }
+        },
+        "/series/:id/matches": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Game"
+                ],
+                "summary": "Create list of matches under a series",
+                "parameters": [
+                    {
+                        "description": "Create Matches",
+                        "name": "model",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requestmodels.MatchCreateModel"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Series ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {},
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responsemodels.ErrorModel"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/responsemodels.ErrorModel"
                         }
                     }
                 }
@@ -118,13 +219,13 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/requestmodels.TeamsAddRemoveModel"
+                            "$ref": "#/definitions/requestmodels.TeamsAddModel"
                         }
                     },
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "Series ID",
-                        "name": "string",
+                        "name": "id",
                         "in": "path",
                         "required": true
                     }
@@ -138,6 +239,12 @@ var doc = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responsemodels.ErrorModel"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/responsemodels.ErrorModel"
                         }
@@ -162,13 +269,13 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/requestmodels.TeamsAddRemoveModel"
+                            "$ref": "#/definitions/requestmodels.TeamsRemoveModel"
                         }
                     },
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "Series ID",
-                        "name": "string",
+                        "name": "id",
                         "in": "path",
                         "required": true
                     }
@@ -177,6 +284,66 @@ var doc = `{
                     "204": {},
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responsemodels.ErrorModel"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/responsemodels.ErrorModel"
+                        }
+                    }
+                }
+            }
+        },
+        "/series/:id/teams/:teamid": {
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Game"
+                ],
+                "summary": "Update",
+                "parameters": [
+                    {
+                        "description": "Update Squad model",
+                        "name": "model",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requestmodels.UpdateSquadModel"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Series ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Team ID",
+                        "name": "teamid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {},
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responsemodels.ErrorModel"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/responsemodels.ErrorModel"
                         }
@@ -443,6 +610,42 @@ var doc = `{
         }
     },
     "definitions": {
+        "requestmodels.Match": {
+            "type": "object",
+            "required": [
+                "matchType",
+                "overLimit",
+                "participants"
+            ],
+            "properties": {
+                "matchType": {
+                    "type": "integer"
+                },
+                "overLimit": {
+                    "type": "integer"
+                },
+                "participants": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "requestmodels.MatchCreateModel": {
+            "type": "object",
+            "required": [
+                "matches"
+            ],
+            "properties": {
+                "matches": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/requestmodels.Match"
+                    }
+                }
+            }
+        },
         "requestmodels.PlayerCreateModel": {
             "type": "object",
             "required": [
@@ -505,8 +708,26 @@ var doc = `{
                 "teams": {
                     "type": "array",
                     "items": {
+                        "$ref": "#/definitions/requestmodels.SeriesParticipantModel"
+                    }
+                }
+            }
+        },
+        "requestmodels.SeriesParticipantModel": {
+            "type": "object",
+            "required": [
+                "squadPlayers",
+                "teamId"
+            ],
+            "properties": {
+                "squadPlayers": {
+                    "type": "array",
+                    "items": {
                         "type": "string"
                     }
+                },
+                "teamId": {
+                    "type": "string"
                 }
             }
         },
@@ -541,13 +762,55 @@ var doc = `{
                 }
             }
         },
-        "requestmodels.TeamsAddRemoveModel": {
+        "requestmodels.TeamsAddModel": {
             "type": "object",
             "required": [
                 "teams"
             ],
             "properties": {
                 "teams": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/requestmodels.SeriesParticipantModel"
+                    }
+                }
+            }
+        },
+        "requestmodels.TeamsRemoveModel": {
+            "type": "object",
+            "required": [
+                "teams"
+            ],
+            "properties": {
+                "teams": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "requestmodels.UpdateSeriesStatusModel": {
+            "type": "object",
+            "required": [
+                "status"
+            ],
+            "properties": {
+                "status": {
+                    "type": "integer"
+                }
+            }
+        },
+        "requestmodels.UpdateSquadModel": {
+            "type": "object",
+            "properties": {
+                "addedPlayer": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "removedPlayer": {
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -591,6 +854,9 @@ var doc = `{
                 },
                 "name": {
                     "type": "string"
+                },
+                "status": {
+                    "type": "integer"
                 },
                 "teams": {
                     "type": "array",

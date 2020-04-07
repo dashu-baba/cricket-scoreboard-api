@@ -7,6 +7,8 @@ import (
 	"cricket-scoreboard-api/src/driver"
 	"time"
 
+	"go.mongodb.org/mongo-driver/mongo/options"
+
 	"go.mongodb.org/mongo-driver/bson"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -26,11 +28,10 @@ func NewMatchRepository(DB *driver.DB) *MatchRepository {
 	}
 }
 
-//InsertMany insert a player object into db
-//and return that inserted items.
-func (repo *MatchRepository) InsertMany(players []domains.Player) []domains.Player {
-	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
-	collections := repo.DB.Database.Collection(collectionName)
+//InsertMany godoc
+//Insert a collection of match and retur the added collection
+func (repo *MatchRepository) InsertMany(ctx context.Context, players []domains.Match) []domains.Match {
+	collections := repo.DB.Database.Collection(matchCollectionName)
 	items := []interface{}{}
 	for _, value := range players {
 		value.ID = primitive.NewObjectID()
@@ -42,12 +43,33 @@ func (repo *MatchRepository) InsertMany(players []domains.Player) []domains.Play
 		panic(err)
 	}
 
-	res := []domains.Player{}
+	res := []domains.Match{}
 	for _, val := range items {
-		res = append(res, val.(domains.Player))
+		res = append(res, val.(domains.Match))
 	}
 
 	return res
+}
+
+//GetLastMatchNumber godoc
+//Get the last entry of the match
+func (repo *MatchRepository) GetLastMatchNumber(ctx context.Context) int {
+	collections := repo.DB.Database.Collection(matchCollectionName)
+	// groupStage := bson.D{{"$group", bson.D{{"max", bson.D{{"$max", "$number"}}}}}}
+	// cursor, err := collections.Aggregate(ctx, mongo.Pipeline{groupStage})
+	option := options.FindOne()
+	option.SetSort(bson.M{"number": -1})
+	result := collections.FindOne(ctx, bson.M{}, option)
+	if result.Err() != nil {
+		if result.Err().Error() == "mongo: no documents in result" {
+			return 0
+		}
+		panic(result.Err())
+	}
+
+	match := domains.Match{}
+	result.Decode(&match)
+	return match.Number
 }
 
 //GetAll retrieves all player objects from db
@@ -55,7 +77,7 @@ func (repo *MatchRepository) InsertMany(players []domains.Player) []domains.Play
 //and return that collection.
 func (repo *MatchRepository) GetAll(teamID primitive.ObjectID) []domains.Player {
 	ctx, _ := context.WithTimeout(context.Background(), 50*time.Second)
-	collections := repo.DB.Database.Collection(collectionName)
+	collections := repo.DB.Database.Collection(matchCollectionName)
 	cursor, err := collections.Find(ctx, bson.M{"teamID": teamID})
 
 	if err != nil {

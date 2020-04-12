@@ -4,17 +4,16 @@ package driver
 import (
 	"context"
 	"cricket-scoreboard-api/src/models"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 //DB represent the database connection
 type DB struct {
 	Database *mongo.Database
 	Context  context.Context
-	// Mgo *mgo.database
 }
 
 //ConnectDb creates a connection to database
@@ -29,7 +28,7 @@ func ConnectDb() *DB {
 	}
 
 	return &DB{
-		Database: client.Database("cricketScoreboard"),
+		Database: client.Database(configuration.Db.Name),
 		Context:  ctx,
 	}
 }

@@ -200,6 +200,112 @@ var doc = `{
                 }
             }
         },
+        "/series/:id/matches/:matchid": {
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Game"
+                ],
+                "summary": "Update starting players of the match",
+                "parameters": [
+                    {
+                        "description": "Match Playing Squad",
+                        "name": "model",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requestmodels.MatchPlayingSquadModel"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Series ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Match ID",
+                        "name": "matchid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {},
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responsemodels.ErrorModel"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/responsemodels.ErrorModel"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Game"
+                ],
+                "summary": "Update match status",
+                "parameters": [
+                    {
+                        "description": "Update Match Status Model",
+                        "name": "model",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requestmodels.UpdateSeriesStatusModel"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Series ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Match ID",
+                        "name": "matchid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {},
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responsemodels.ErrorModel"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/responsemodels.ErrorModel"
+                        }
+                    }
+                }
+            }
+        },
         "/series/:id/teams": {
             "post": {
                 "consumes": [
@@ -643,6 +749,29 @@ var doc = `{
                     "items": {
                         "$ref": "#/definitions/requestmodels.Match"
                     }
+                }
+            }
+        },
+        "requestmodels.MatchPlayingSquadModel": {
+            "type": "object",
+            "required": [
+                "teamId"
+            ],
+            "properties": {
+                "extras": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "players": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "teamId": {
+                    "type": "string"
                 }
             }
         },

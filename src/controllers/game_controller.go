@@ -3,7 +3,7 @@ package controllers
 
 import (
 	"context"
-	"cricket-scoreboard-api/src/requestmodels"
+	"cricket-scoreboard-api/src/requestmodels/validators"
 	"cricket-scoreboard-api/src/responsemodels"
 	"cricket-scoreboard-api/src/services"
 	"net/http"
@@ -62,7 +62,7 @@ func (controller GameController) CreateSeries(c *gin.Context) {
 	ctx, cancel = context.WithCancel(context.Background())
 	defer cancel()
 
-	var request, err = requestmodels.ValidateCreateSeriesRequests(c)
+	var request, err = validators.ValidateCreateSeriesRequests(c)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, responsemodels.ErrorModel{
@@ -103,7 +103,7 @@ func (controller GameController) AddTeams(c *gin.Context) {
 	defer cancel()
 
 	seriesid := c.Param("id")
-	var request, err = requestmodels.ValidateAddTeamRequests(c)
+	var request, err = validators.ValidateAddTeamRequests(c)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, responsemodels.ErrorModel{
@@ -152,7 +152,7 @@ func (controller GameController) RemoveTeams(c *gin.Context) {
 	defer cancel()
 
 	seriesid := c.Param("id")
-	var request, err = requestmodels.ValidateRemoveTeamRequests(c)
+	var request, err = validators.ValidateRemoveTeamRequests(c)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, responsemodels.ErrorModel{
@@ -188,7 +188,7 @@ func (controller GameController) CreateMatches(c *gin.Context) {
 	defer cancel()
 
 	seriesid := c.Param("id")
-	var request, err = requestmodels.ValidateCreateMatchesRequests(c)
+	var request, err = validators.ValidateCreateMatchesRequests(c)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, responsemodels.ErrorModel{
@@ -231,7 +231,7 @@ func (controller GameController) UpdateSquad(c *gin.Context) {
 
 	seriesid := c.Param("id")
 	teamid := c.Param("teamid")
-	var request, err = requestmodels.ValidateUpdateSquadRequests(c)
+	var request, err = validators.ValidateUpdateSquadRequests(c)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, responsemodels.ErrorModel{
@@ -272,7 +272,7 @@ func (controller GameController) UpdateSeriesStatus(c *gin.Context) {
 	defer cancel()
 
 	seriesid := c.Param("id")
-	var request, err = requestmodels.ValidateUpdateSeriesStatusRequests(c)
+	var request, err = validators.ValidateUpdateSeriesStatusRequests(c)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, responsemodels.ErrorModel{
@@ -283,6 +283,90 @@ func (controller GameController) UpdateSeriesStatus(c *gin.Context) {
 	}
 
 	errModel := controller.GameService.UpdateSeriesStatus(ctx, seriesid, request)
+	if errModel != (responsemodels.ErrorModel{}) {
+		c.JSON(errModel.ErrorCode, errModel)
+		return
+	}
+
+	c.JSON(http.StatusNoContent, nil)
+}
+
+//UpdateMatchStatus godoc
+// @Summary Update match status
+// @Tags Game
+// @Accept  json
+// @Produce json
+// @Param model body requestmodels.UpdateSeriesStatusModel true "Update Match Status Model"
+// @Param id path string true "Series ID" string
+// @Param matchid path string true "Match ID" string
+// @Success 204
+// @Failure 400 {object} responsemodels.ErrorModel
+// @Failure 404 {object} responsemodels.ErrorModel
+// @Router /series/:id/matches/:matchid [patch]
+func (controller GameController) UpdateMatchStatus(c *gin.Context) {
+	var (
+		ctx    context.Context
+		cancel context.CancelFunc
+	)
+
+	ctx, cancel = context.WithCancel(context.Background())
+	defer cancel()
+
+	matchid := c.Param("matchid")
+	var request, err = validators.ValidateUpdateSeriesStatusRequests(c)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, responsemodels.ErrorModel{
+			ErrorCode: http.StatusBadRequest,
+			Message:   err.Error(),
+		})
+		return
+	}
+
+	errModel := controller.GameService.UpdateMatchStatus(ctx, matchid, request)
+	if errModel != (responsemodels.ErrorModel{}) {
+		c.JSON(errModel.ErrorCode, errModel)
+		return
+	}
+
+	c.JSON(http.StatusNoContent, nil)
+}
+
+//UpdateMatchPlayingSquad godoc
+// @Summary Update starting players of the match
+// @Tags Game
+// @Accept  json
+// @Produce json
+// @Param model body requestmodels.MatchPlayingSquadModel true "Match Playing Squad"
+// @Param id path string true "Series ID" string
+// @Param matchid path string true "Match ID" string
+// @Success 204
+// @Failure 400 {object} responsemodels.ErrorModel
+// @Failure 404 {object} responsemodels.ErrorModel
+// @Router /series/:id/matches/:matchid [put]
+func (controller GameController) UpdateMatchPlayingSquad(c *gin.Context) {
+	var (
+		ctx    context.Context
+		cancel context.CancelFunc
+	)
+
+	ctx, cancel = context.WithCancel(context.Background())
+	defer cancel()
+
+	seriesid := c.Param("id")
+	matchid := c.Param("matchid")
+	var request, err = validators.ValidateUpdateMatchPlayingSquadRequests(c)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, responsemodels.ErrorModel{
+			ErrorCode: http.StatusBadRequest,
+			Message:   err.Error(),
+		})
+		return
+	}
+
+	errModel := controller.GameService.UpdateMatchPlayingSquad(ctx, seriesid, matchid, request)
+
 	if errModel != (responsemodels.ErrorModel{}) {
 		c.JSON(errModel.ErrorCode, errModel)
 		return

@@ -23,6 +23,21 @@ definitions:
     required:
     - matches
     type: object
+  requestmodels.MatchPlayingSquadModel:
+    properties:
+      extras:
+        items:
+          type: string
+        type: array
+      players:
+        items:
+          type: string
+        type: array
+      teamId:
+        type: string
+    required:
+    - teamId
+    type: object
   requestmodels.PlayerCreateModel:
     properties:
       name:
@@ -303,6 +318,77 @@ paths:
           schema:
             $ref: '#/definitions/responsemodels.ErrorModel'
       summary: Create list of matches under a series
+      tags:
+      - Game
+  /series/:id/matches/:matchid:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Update Match Status Model
+        in: body
+        name: model
+        required: true
+        schema:
+          $ref: '#/definitions/requestmodels.UpdateSeriesStatusModel'
+      - description: Series ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Match ID
+        in: path
+        name: matchid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204": {}
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responsemodels.ErrorModel'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responsemodels.ErrorModel'
+      summary: Update match status
+      tags:
+      - Game
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Match Playing Squad
+        in: body
+        name: model
+        required: true
+        schema:
+          $ref: '#/definitions/requestmodels.MatchPlayingSquadModel'
+      - description: Series ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Match ID
+        in: path
+        name: matchid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204": {}
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responsemodels.ErrorModel'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responsemodels.ErrorModel'
+      summary: Update starting players of the match
       tags:
       - Game
   /series/:id/teams:

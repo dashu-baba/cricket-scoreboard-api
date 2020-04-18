@@ -311,18 +311,8 @@ func (service *GameService) CreateMatches(ctx context.Context, id string, model 
 	matches := []domains.Match{}
 	if len(model.Matches) > 0 {
 		for _, val := range model.Matches {
-			max++
-			match := domains.Match{
-				ID:           primitive.NewObjectID(),
-				MatchType:    val.MatchType,
-				Number:       max,
-				OverLimit:    val.OverLimit,
-				SeriesID:     series.ID,
-				Participants: []primitive.ObjectID{},
-			}
-
+			teamIds := []primitive.ObjectID{}
 			if len(val.Participants) > 0 {
-				teamIds := []primitive.ObjectID{}
 				for _, p := range val.Participants {
 					teamID, err := primitive.ObjectIDFromHex(p)
 					if err != nil {
@@ -331,7 +321,22 @@ func (service *GameService) CreateMatches(ctx context.Context, id string, model 
 
 					teamIds = append(teamIds, teamID)
 				}
-				match.Participants = teamIds
+			}
+
+			max++
+			match := domains.Match{
+				ID:          primitive.NewObjectID(),
+				MatchType:   val.MatchType,
+				Number:      max,
+				OverLimit:   val.OverLimit,
+				SeriesID:    series.ID,
+				MatchStatus: models.NotStarted,
+				Team1: domains.MatchParticipant{
+					TeamID: teamIds[0],
+				},
+				Team2: domains.MatchParticipant{
+					TeamID: teamIds[1],
+				},
 			}
 
 			matches = append(matches, match)
@@ -430,6 +435,161 @@ func (service *GameService) UpdateSeriesStatus(ctx context.Context, id string, m
 	updates["status"] = model.Status
 
 	service.SeriesRepository.Update(ctx, series.ID.Hex(), updates)
+
+	return responsemodels.ErrorModel{}
+}
+
+//UpdateMatchStatus godoc
+// @Summary update match status
+func (service *GameService) UpdateMatchStatus(ctx context.Context, id string, model requestmodels.UpdateSeriesStatusModel) responsemodels.ErrorModel {
+
+	match := service.MatchRepository.GetByID(ctx, id)
+
+	if match.ID.String() == "" {
+		return responsemodels.ErrorModel{
+			ErrorCode: http.StatusNotFound,
+			Message:   "The match you are tried to modified is not exists",
+		}
+	}
+
+	if match.MatchStatus > model.Status {
+		return responsemodels.ErrorModel{
+			ErrorCode: http.StatusBadRequest,
+			Message:   "Can't downgrade the series status",
+		}
+	}
+
+	updates := map[string]interface{}{}
+	updates["matchstatus"] = model.Status
+
+	service.MatchRepository.Update(ctx, match.ID.Hex(), updates)
+
+	return responsemodels.ErrorModel{}
+}
+
+//UpdateMatchPlayingSquad godoc
+// @Summary update match playing squad updates squad of a team by adding players
+func (service *GameService) UpdateMatchPlayingSquad(ctx context.Context, id string, matchID string, model requestmodels.MatchPlayingSquadModel) responsemodels.ErrorModel {
+
+	match := service.MatchRepository.GetByID(ctx, matchID)
+	series := service.SeriesRepository.GetByID(ctx, id)
+
+	if series.ID.String() == "" {
+		return responsemodels.ErrorModel{
+			ErrorCode: http.StatusNotFound,
+			Message:   "The series does not exists",
+		}
+	}
+
+	if match.ID.String() == "" {
+		return responsemodels.ErrorModel{
+			ErrorCode: http.StatusNotFound,
+			Message:   "The match you are tried to modified is not exists",
+		}
+	}
+
+	if series.ID != match.SeriesID {
+		return responsemodels.ErrorModel{
+			ErrorCode: http.StatusBadRequest,
+			Message:   "The match id does not belong in the series",
+		}
+	}
+
+	if match.Team1.TeamID.Hex() == model.TeamID || match.Team2.TeamID.Hex() == model.TeamID {
+		return responsemodels.ErrorModel{
+			ErrorCode: http.StatusBadRequest,
+			Message:   "The the team info already updated",
+		}
+	}
+
+	if match.MatchStatus != models.NotStarted {
+		return responsemodels.ErrorModel{
+			ErrorCode: http.StatusBadRequest,
+			Message:   "Cannot modified match",
+		}
+	}
+
+	idList := append(model.Players, model.Extras...)
+
+	players := service.PlayerRepository.GetAllByIds(ctx, idList)
+
+	if len(idList) != len(players) {
+		return responsemodels.ErrorModel{
+			ErrorCode: http.StatusBadRequest,
+			Message:   "Players does not exists",
+		}
+	}
+
+	var teamSquad = domains.SeriesParticipant{}
+	for _, team := range series.Teams {
+		if team.TeamID.Hex() == model.TeamID {
+			teamSquad = team
+			break
+		}
+	}
+
+	if teamSquad.TeamID.String() == "" {
+		return responsemodels.ErrorModel{
+			ErrorCode: http.StatusBadRequest,
+			Message:   "This team does not belong to the series",
+		}
+	}
+
+	for _, p := range idList {
+		var exists = false
+		for _, p1 := range teamSquad.SquadPlayers {
+			if p == p1.Hex() {
+				exists = true
+				break
+			}
+		}
+
+		if !exists {
+			return responsemodels.ErrorModel{
+				ErrorCode: http.StatusBadRequest,
+				Message:   "Players does not included in the team squad",
+			}
+		}
+	}
+
+	teamID, err := primitive.ObjectIDFromHex(model.TeamID)
+	if err != nil {
+		panic(err)
+	}
+	playerIds := []primitive.ObjectID{}
+	extraIds := []primitive.ObjectID{}
+
+	for _, val := range model.Players {
+		playerID, err := primitive.ObjectIDFromHex(val)
+		if err != nil {
+			panic(err)
+		}
+		playerIds = append(playerIds, playerID)
+	}
+
+	for _, val := range model.Extras {
+		extraID, err := primitive.ObjectIDFromHex(val)
+		if err != nil {
+			panic(err)
+		}
+		extraIds = append(extraIds, extraID)
+	}
+
+	matchTeam := domains.MatchParticipant{
+		TeamID:       teamID,
+		PlayingSquad: playerIds,
+		Extras:       extraIds,
+	}
+
+	updates := map[string]interface{}{}
+
+	if match.Team1.TeamID == matchTeam.TeamID {
+		updates["team1"] = matchTeam
+	} else {
+		updates["team2"] = matchTeam
+	}
+
+	service.MatchRepository.Update(ctx, match.ID.Hex(), updates)
 
 	return responsemodels.ErrorModel{}
 }

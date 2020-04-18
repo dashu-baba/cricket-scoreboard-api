@@ -229,3 +229,17 @@ func (controller TeamController) RemovePlayer(c *gin.Context) {
 
 	c.JSON(http.StatusNoContent, nil)
 }
+
+//CreateTeam ...
+// @Summary Create a team item
+// @Tags Teams
+// @Accept  json
+// @Produce  json
+// @Param model body requestmodels.TeamCreateModel true "Create Team"
+// @Success 201 {object} responsemodels.Team
+// @Failure 400 {object} responsemodels.ErrorModel
+// @Router /teams [post]
+func (controller TeamController) Test(c *gin.Context) {
+
+	c.JSON(http.StatusCreated, nil)
+}

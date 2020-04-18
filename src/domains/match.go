@@ -10,13 +10,23 @@ import (
 // Match godoc
 // @Summary Define Match model
 type Match struct {
-	ID           primitive.ObjectID
-	Number       int
-	MatchType    models.MatchType
-	OverLimit    int
-	Result       MatchResult
-	SeriesID     primitive.ObjectID
-	Participants []primitive.ObjectID
+	ID          primitive.ObjectID
+	Number      int
+	MatchType   models.MatchType
+	OverLimit   int
+	Result      MatchResult
+	SeriesID    primitive.ObjectID
+	MatchStatus models.SeriesState
+	Team1       MatchParticipant
+	Team2       MatchParticipant
+}
+
+// MatchParticipant godoc
+// @Summary Define match teams
+type MatchParticipant struct {
+	TeamID       primitive.ObjectID
+	PlayingSquad []primitive.ObjectID
+	Extras       []primitive.ObjectID
 }
 
 // MatchResult godoc

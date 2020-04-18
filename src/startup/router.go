@@ -51,6 +51,7 @@ func NewRouter() *gin.Engine {
 
 	teams := router.Group("/teams")
 	{
+
 		teams.GET("", teamController.GetTeams)
 		teams.POST("", teamController.CreateTeam)
 		teams.GET(":id", teamController.GetTeam)
@@ -68,6 +69,8 @@ func NewRouter() *gin.Engine {
 		series.DELETE(":id/teams", gameController.RemoveTeams)
 		series.PUT(":id/teams/:teamid", gameController.UpdateSquad)
 		series.POST(":id/matches", gameController.CreateMatches)
+		series.PATCH(":id/matches/:matchid", gameController.UpdateMatchStatus)
+		series.PUT(":id/matches/:matchid", gameController.UpdateMatchPlayingSquad)
 	}
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 

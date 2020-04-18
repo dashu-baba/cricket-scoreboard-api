@@ -1,4 +1,20 @@
 definitions:
+  gin.H:
+    additionalProperties: true
+    type: object
+  requestmodels.CreateInningsModel:
+    properties:
+      battingTeamId:
+        type: string
+      bowlingTeamId:
+        type: string
+      tossWinningTeamId:
+        type: string
+    required:
+    - battingTeamId
+    - bowlingTeamId
+    - tossWinningTeamId
+    type: object
   requestmodels.Match:
     properties:
       matchType:
@@ -94,6 +110,19 @@ definitions:
     required:
     - squadPlayers
     - teamId
+    type: object
+  requestmodels.StartInningsModel:
+    properties:
+      bowlerID:
+        type: string
+      nonStrikeBatsmanId:
+        type: string
+      strikeBatsmanId:
+        type: string
+    required:
+    - bowlerID
+    - nonStrikeBatsmanId
+    - strikeBatsmanId
     type: object
   requestmodels.TeamCreateModel:
     properties:
@@ -389,6 +418,86 @@ paths:
           schema:
             $ref: '#/definitions/responsemodels.ErrorModel'
       summary: Update starting players of the match
+      tags:
+      - Game
+  /series/:id/matches/:matchid/innings:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Create Innings Model
+        in: body
+        name: model
+        required: true
+        schema:
+          $ref: '#/definitions/requestmodels.CreateInningsModel'
+      - description: Series ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Match ID
+        in: path
+        name: matchid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/gin.H'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responsemodels.ErrorModel'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responsemodels.ErrorModel'
+      summary: Created an innings
+      tags:
+      - Game
+  /series/:id/matches/:matchid/innings/:inningsid/start:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Start Innings Model
+        in: body
+        name: model
+        required: true
+        schema:
+          $ref: '#/definitions/requestmodels.StartInningsModel'
+      - description: Series ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Match ID
+        in: path
+        name: matchid
+        required: true
+        type: string
+      - description: Innings ID
+        in: path
+        name: inningsid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204": {}
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responsemodels.ErrorModel'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responsemodels.ErrorModel'
+      summary: Created an innings
       tags:
       - Game
   /series/:id/teams:

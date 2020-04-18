@@ -6,6 +6,7 @@ import (
 	"cricket-scoreboard-api/src/requestmodels/validators"
 	"cricket-scoreboard-api/src/responsemodels"
 	"cricket-scoreboard-api/src/services"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -374,3 +375,143 @@ func (controller GameController) UpdateMatchPlayingSquad(c *gin.Context) {
 
 	c.JSON(http.StatusNoContent, nil)
 }
+
+//CreateInnings godoc
+// @Summary Created an innings
+// @Tags Game
+// @Accept  json
+// @Produce json
+// @Param model body requestmodels.CreateInningsModel true "Create Innings Model"
+// @Param id path string true "Series ID" string
+// @Param matchid path string true "Match ID" string
+// @Success 201 {object} gin.H
+// @Failure 400 {object} responsemodels.ErrorModel
+// @Failure 404 {object} responsemodels.ErrorModel
+// @Router /series/:id/matches/:matchid/innings [post]
+func (controller GameController) CreateInnings(c *gin.Context) {
+	var (
+		ctx    context.Context
+		cancel context.CancelFunc
+	)
+
+	ctx, cancel = context.WithCancel(context.Background())
+	defer cancel()
+
+	seriesid := c.Param("id")
+	matchid := c.Param("matchid")
+	var request, err = validators.ValidateCreateInningsModel(c)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, responsemodels.ErrorModel{
+			ErrorCode: http.StatusBadRequest,
+			Message:   err.Error(),
+		})
+		return
+	}
+
+	id, errModel := controller.GameService.CreateInnings(ctx, seriesid, matchid, request)
+
+	if errModel != (responsemodels.ErrorModel{}) {
+		c.JSON(errModel.ErrorCode, errModel)
+		return
+	}
+
+	url, err := fmt.Printf("/series/%s/matches/%s/innings/%s", seriesid, matchid, id)
+	if err != nil {
+		panic(err)
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"resource": url,
+	})
+}
+
+//StartInnings godoc
+// @Summary Created an innings
+// @Tags Game
+// @Accept  json
+// @Produce json
+// @Param model body requestmodels.StartInningsModel true "Start Innings Model"
+// @Param id path string true "Series ID" string
+// @Param matchid path string true "Match ID" string
+// @Param inningsid path string true "Innings ID" string
+// @Success 204
+// @Failure 400 {object} responsemodels.ErrorModel
+// @Failure 404 {object} responsemodels.ErrorModel
+// @Router /series/:id/matches/:matchid/innings/:inningsid/start [put]
+func (controller GameController) StartInnings(c *gin.Context) {
+	var (
+		ctx    context.Context
+		cancel context.CancelFunc
+	)
+
+	ctx, cancel = context.WithCancel(context.Background())
+	defer cancel()
+
+	seriesid := c.Param("id")
+	matchid := c.Param("matchid")
+	inningsid := c.Param("inningsid")
+	var request, err = validators.ValidateStartInningsModel(c)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, responsemodels.ErrorModel{
+			ErrorCode: http.StatusBadRequest,
+			Message:   err.Error(),
+		})
+		return
+	}
+
+	controller.GameService.StartInnings(ctx, seriesid, matchid, inningsid, request)
+
+	c.JSON(http.StatusNoContent, nil)
+}
+
+// //GetInnings godoc
+// // @Summary Created an innings
+// // @Tags Game
+// // @Accept  json
+// // @Produce json
+// // @Param id path string true "Series ID" string
+// // @Param matchid path string true "Match ID" string
+// // @Param inningsid path string true "Innings ID" string
+// // @Success 200 {object} gin.H
+// // @Failure 400 {object} responsemodels.ErrorModel
+// // @Failure 404 {object} responsemodels.ErrorModel
+// // @Router /series/:id/matches/:matchid/innings/:inningsid [get]
+// func (controller GameController) GetInnings(c *gin.Context) {
+// 	var (
+// 		ctx    context.Context
+// 		cancel context.CancelFunc
+// 	)
+
+// 	ctx, cancel = context.WithCancel(context.Background())
+// 	defer cancel()
+
+// 	seriesid := c.Param("id")
+// 	matchid := c.Param("matchid")
+// 	var request, err = validators.ValidateCreateInningsModel(c)
+
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, responsemodels.ErrorModel{
+// 			ErrorCode: http.StatusBadRequest,
+// 			Message:   err.Error(),
+// 		})
+// 		return
+// 	}
+
+// 	id, errModel := controller.GameService.CreateInnings(ctx, seriesid, matchid, request)
+
+// 	if errModel != (responsemodels.ErrorModel{}) {
+// 		c.JSON(errModel.ErrorCode, errModel)
+// 		return
+// 	}
+
+// 	url, err := fmt.Printf("/series/%s/matches/%s/innings/%s", seriesid, matchid, id)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+
+// 	c.JSON(http.StatusCreated, gin.H{
+// 		"resource": url,
+// 	})
+// }

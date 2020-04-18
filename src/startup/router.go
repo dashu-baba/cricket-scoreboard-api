@@ -46,6 +46,18 @@ func NewRouter() *gin.Engine {
 			repositories.NewPlayerRepository(
 				driver.ConnectDb(),
 			),
+			repositories.NewInningsRepository(
+				driver.ConnectDb(),
+			),
+			repositories.NewBattingRepository(
+				driver.ConnectDb(),
+			),
+			repositories.NewBowlingRepository(
+				driver.ConnectDb(),
+			),
+			repositories.NewOverRepository(
+				driver.ConnectDb(),
+			),
 		),
 	)
 
@@ -71,6 +83,8 @@ func NewRouter() *gin.Engine {
 		series.POST(":id/matches", gameController.CreateMatches)
 		series.PATCH(":id/matches/:matchid", gameController.UpdateMatchStatus)
 		series.PUT(":id/matches/:matchid", gameController.UpdateMatchPlayingSquad)
+		series.POST(":id/matches/:matchid/innings", gameController.CreateInnings)
+		series.PUT(":id/matches/:matchid/innings/:inningsid/start", gameController.StartInnings)
 	}
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 

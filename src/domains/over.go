@@ -22,6 +22,7 @@ type Over struct {
 	Six        int
 	IsRunning  bool
 	InningsID  primitive.ObjectID
-	PlayerID   primitive.ObjectID
+	BowlerID   primitive.ObjectID
 	Wickets    []Batting
+	Squence    string
 }

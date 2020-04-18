@@ -2,6 +2,8 @@
 package domains
 
 import (
+	"cricket-scoreboard-api/src/models"
+
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -15,4 +17,6 @@ type Innings struct {
 	MatchID       primitive.ObjectID
 	BattingTeamID primitive.ObjectID
 	BowlingTeamID primitive.ObjectID
+	TossResult    primitive.ObjectID
+	InningsStatus models.SeriesState
 }

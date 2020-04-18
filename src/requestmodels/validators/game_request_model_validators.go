@@ -108,3 +108,39 @@ func ValidateRemoveTeamRequests(c *gin.Context) (requestmodels.TeamsRemoveModel,
 
 	return model, nil
 }
+
+//ValidateCreateInningsModel method CreateInningsModel model
+func ValidateCreateInningsModel(c *gin.Context) (requestmodels.CreateInningsModel, error) {
+	model := requestmodels.CreateInningsModel{}
+	if err := c.ShouldBind(&model); err != nil {
+		return model, err
+	}
+
+	if model.BattingTeamID == model.BowlingTeamID {
+		return model, errors.New("Batting and bowling team should be different")
+	}
+
+	if model.BattingTeamID != model.TossWinningTeamID || model.BowlingTeamID != model.TossWinningTeamID {
+		return model, errors.New("Toss winner should be either batting team or bowling team")
+	}
+
+	return model, nil
+}
+
+//ValidateStartInningsModel method StartInningsModel model
+func ValidateStartInningsModel(c *gin.Context) (requestmodels.StartInningsModel, error) {
+	model := requestmodels.StartInningsModel{}
+	if err := c.ShouldBind(&model); err != nil {
+		return model, err
+	}
+
+	if model.NonStrikeBatsmanID == model.StrikeBatsmanID {
+		return model, errors.New("Strike and non strike should be different")
+	}
+
+	if model.BowlerID != model.NonStrikeBatsmanID || model.BowlerID != model.StrikeBatsmanID {
+		return model, errors.New("Bowler and batsman sould be different")
+	}
+
+	return model, nil
+}

@@ -15,22 +15,34 @@ import (
 
 //GameService defines the service instance
 type GameService struct {
-	SeriesRepository *repositories.SeriesRepository
-	TeamRepository   *repositories.TeamRepository
-	MatchRepository  *repositories.MatchRepository
-	PlayerRepository *repositories.PlayerRepository
+	SeriesRepository  *repositories.SeriesRepository
+	TeamRepository    *repositories.TeamRepository
+	MatchRepository   *repositories.MatchRepository
+	PlayerRepository  *repositories.PlayerRepository
+	InningsRepository *repositories.InningsRepository
+	BattingRepository *repositories.BattingRepository
+	BowlingRepository *repositories.BowlingRepository
+	OverRepository    *repositories.OverRepository
 }
 
 //NewGameService returns a new GameService.
 func NewGameService(seriesRepository *repositories.SeriesRepository,
 	teamRepository *repositories.TeamRepository,
 	matchRepository *repositories.MatchRepository,
-	playerRepository *repositories.PlayerRepository) *GameService {
+	playerRepository *repositories.PlayerRepository,
+	inningsRepository *repositories.InningsRepository,
+	battingRepository *repositories.BattingRepository,
+	bowlingRepository *repositories.BowlingRepository,
+	overRepository *repositories.OverRepository) *GameService {
 	return &GameService{
-		SeriesRepository: seriesRepository,
-		TeamRepository:   teamRepository,
-		PlayerRepository: playerRepository,
-		MatchRepository:  matchRepository,
+		SeriesRepository:  seriesRepository,
+		TeamRepository:    teamRepository,
+		PlayerRepository:  playerRepository,
+		MatchRepository:   matchRepository,
+		BattingRepository: battingRepository,
+		InningsRepository: inningsRepository,
+		OverRepository:    overRepository,
+		BowlingRepository: bowlingRepository,
 	}
 }
 
@@ -495,12 +507,12 @@ func (service *GameService) UpdateMatchPlayingSquad(ctx context.Context, id stri
 		}
 	}
 
-	if match.Team1.TeamID.Hex() == model.TeamID || match.Team2.TeamID.Hex() == model.TeamID {
-		return responsemodels.ErrorModel{
-			ErrorCode: http.StatusBadRequest,
-			Message:   "The the team info already updated",
-		}
-	}
+	// if match.Team1.TeamID.Hex() == model.TeamID || match.Team2.TeamID.Hex() == model.TeamID {
+	// 	return responsemodels.ErrorModel{
+	// 		ErrorCode: http.StatusBadRequest,
+	// 		Message:   "The the team info already updated",
+	// 	}
+	// }
 
 	if match.MatchStatus != models.NotStarted {
 		return responsemodels.ErrorModel{
@@ -590,6 +602,270 @@ func (service *GameService) UpdateMatchPlayingSquad(ctx context.Context, id stri
 	}
 
 	service.MatchRepository.Update(ctx, match.ID.Hex(), updates)
+
+	return responsemodels.ErrorModel{}
+}
+
+//CreateInnings godoc
+// @Summary create a new innings
+func (service *GameService) CreateInnings(ctx context.Context, id string, matchID string, model requestmodels.CreateInningsModel) (string, responsemodels.ErrorModel) {
+
+	match := service.MatchRepository.GetByID(ctx, matchID)
+	series := service.SeriesRepository.GetByID(ctx, id)
+
+	if series.ID.String() == "" {
+		return "", responsemodels.ErrorModel{
+			ErrorCode: http.StatusNotFound,
+			Message:   "The series does not exists",
+		}
+	}
+
+	if match.ID.String() == "" {
+		return "", responsemodels.ErrorModel{
+			ErrorCode: http.StatusNotFound,
+			Message:   "The match you are tried to modified is not exists",
+		}
+	}
+
+	if series.ID != match.SeriesID {
+		return "", responsemodels.ErrorModel{
+			ErrorCode: http.StatusBadRequest,
+			Message:   "The match id does not belong in the series",
+		}
+	}
+
+	if match.MatchStatus != models.NotStarted {
+		return "", responsemodels.ErrorModel{
+			ErrorCode: http.StatusBadRequest,
+			Message:   "Cannot modified match",
+		}
+	}
+
+	idList := []string{}
+	idList = append(idList, model.BattingTeamID, model.BowlingTeamID)
+
+	players := service.PlayerRepository.GetAllByIds(ctx, idList)
+
+	if len(idList) != len(players) {
+		return "", responsemodels.ErrorModel{
+			ErrorCode: http.StatusBadRequest,
+			Message:   "Players does not exists",
+		}
+	}
+
+	if (match.Team1.TeamID.Hex() != model.BattingTeamID && match.Team1.TeamID.Hex() == model.BowlingTeamID) ||
+		(match.Team2.TeamID.Hex() != model.BattingTeamID && match.Team2.TeamID.Hex() == model.BowlingTeamID) {
+		return "", responsemodels.ErrorModel{
+			ErrorCode: http.StatusBadRequest,
+			Message:   "This team does not belong to the match",
+		}
+	}
+
+	battingTeamID, err := primitive.ObjectIDFromHex(model.BattingTeamID)
+	if err != nil {
+		panic(err)
+	}
+
+	bowlingTeamID, err := primitive.ObjectIDFromHex(model.BowlingTeamID)
+	if err != nil {
+		panic(err)
+	}
+
+	tossWinningTeamID, err := primitive.ObjectIDFromHex(model.TossWinningTeamID)
+	if err != nil {
+		panic(err)
+	}
+
+	number := service.InningsRepository.GetLastInningsNumber(ctx)
+
+	innings := domains.Innings{
+		BattingTeamID: battingTeamID,
+		BowlingTeamID: bowlingTeamID,
+		ID:            primitive.NewObjectID(),
+		MatchID:       match.ID,
+		Number:        number + 1,
+		OverLimit:     match.OverLimit,
+		TossResult:    tossWinningTeamID,
+		InningsStatus: models.NotStarted,
+	}
+
+	list := []domains.Innings{}
+	list = append(list, innings)
+
+	service.InningsRepository.InsertMany(ctx, list)
+
+	return innings.ID.Hex(), responsemodels.ErrorModel{}
+}
+
+//StartInnings godoc
+// @Summary start a innings
+func (service *GameService) StartInnings(ctx context.Context, id string, matchID string, inningsID string,
+	model requestmodels.StartInningsModel) responsemodels.ErrorModel {
+
+	match := service.MatchRepository.GetByID(ctx, matchID)
+	series := service.SeriesRepository.GetByID(ctx, id)
+	innings := service.InningsRepository.GetByID(ctx, inningsID)
+
+	if series.ID.String() == "" {
+		return responsemodels.ErrorModel{
+			ErrorCode: http.StatusNotFound,
+			Message:   "The series does not exists",
+		}
+	}
+
+	if match.ID.String() == "" {
+		return responsemodels.ErrorModel{
+			ErrorCode: http.StatusNotFound,
+			Message:   "The match you are tried to modified is not exists",
+		}
+	}
+
+	if innings.ID.String() == "" {
+		return responsemodels.ErrorModel{
+			ErrorCode: http.StatusNotFound,
+			Message:   "The innings you are tried to modified is not exists",
+		}
+	}
+
+	if series.ID != match.SeriesID {
+		return responsemodels.ErrorModel{
+			ErrorCode: http.StatusBadRequest,
+			Message:   "The match id does not belong in the series",
+		}
+	}
+
+	if innings.MatchID != match.ID {
+		return responsemodels.ErrorModel{
+			ErrorCode: http.StatusBadRequest,
+			Message:   "The innings does not belong in the match",
+		}
+	}
+
+	if innings.InningsStatus != models.NotStarted {
+		return responsemodels.ErrorModel{
+			ErrorCode: http.StatusBadRequest,
+			Message:   "Cannot modify innings",
+		}
+	}
+
+	battingTeam := domains.MatchParticipant{}
+	bowlingTeam := domains.MatchParticipant{}
+
+	if match.Team1.TeamID == innings.BattingTeamID {
+		battingTeam = match.Team1
+		bowlingTeam = match.Team2
+	} else {
+		battingTeam = match.Team2
+		bowlingTeam = match.Team1
+	}
+
+	exist1 := false
+	exist2 := false
+	for _, val := range battingTeam.PlayingSquad {
+		if exist1 && exist2 {
+			break
+		}
+		if model.StrikeBatsmanID == val.Hex() && exist1 {
+			exist1 = true
+			continue
+		}
+		if model.NonStrikeBatsmanID == val.Hex() && exist2 {
+			exist2 = true
+			continue
+		}
+	}
+
+	if !(exist1 && exist2) {
+		return responsemodels.ErrorModel{
+			ErrorCode: http.StatusBadRequest,
+			Message:   "Batsman does not included in the squad",
+		}
+	}
+
+	exist1 = false
+	for _, val := range bowlingTeam.PlayingSquad {
+		if model.BowlerID == val.Hex() {
+			exist1 = true
+			break
+		}
+	}
+
+	if !(exist1) {
+		return responsemodels.ErrorModel{
+			ErrorCode: http.StatusBadRequest,
+			Message:   "Bowler does not included in the squad",
+		}
+	}
+
+	batsman1ID, err := primitive.ObjectIDFromHex(model.StrikeBatsmanID)
+	if err != nil {
+		panic(err)
+	}
+
+	batsman2ID, err := primitive.ObjectIDFromHex(model.NonStrikeBatsmanID)
+	if err != nil {
+		panic(err)
+	}
+
+	bowlerID, err := primitive.ObjectIDFromHex(model.BowlerID)
+	if err != nil {
+		panic(err)
+	}
+
+	batsman1 := domains.Batting{
+		ID:         primitive.NewObjectID(),
+		InningsID:  innings.ID,
+		IsInCrease: true,
+		IsInStrike: true,
+		PlayerID:   batsman1ID,
+	}
+
+	batsman2 := domains.Batting{
+		ID:         primitive.NewObjectID(),
+		InningsID:  innings.ID,
+		IsInCrease: true,
+		IsInStrike: true,
+		PlayerID:   batsman2ID,
+	}
+
+	bowler := domains.Bowling{
+		ID:        primitive.NewObjectID(),
+		InningsID: innings.ID,
+		PlayerID:  bowlerID,
+		IsCurrent: true,
+	}
+
+	over := domains.Over{
+		ID:         primitive.NewObjectID(),
+		InningsID:  innings.ID,
+		IsRunning:  true,
+		BowlerID:   bowler.ID,
+		OverNumber: 1,
+	}
+
+	list := []domains.Batting{}
+	list = append(list, batsman1, batsman2)
+	service.BattingRepository.InsertMany(ctx, list)
+
+	bowlerList := []domains.Bowling{}
+	bowlerList = append(bowlerList, bowler)
+	service.BowlingRepository.InsertMany(ctx, bowlerList)
+
+	overList := []domains.Over{}
+	overList = append(overList, over)
+	service.OverRepository.InsertMany(ctx, overList)
+
+	updates := map[string]interface{}{}
+	updates["inningsstatus"] = models.OnGoing
+	service.InningsRepository.Update(ctx, inningsID, updates)
+
+	updates = map[string]interface{}{}
+	updates["matchstatus"] = models.OnGoing
+	service.MatchRepository.Update(ctx, matchID, updates)
+
+	updates = map[string]interface{}{}
+	updates["status"] = models.OnGoing
+	service.SeriesRepository.Update(ctx, id, updates)
 
 	return responsemodels.ErrorModel{}
 }

@@ -306,6 +306,126 @@ var doc = `{
                 }
             }
         },
+        "/series/:id/matches/:matchid/innings": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Game"
+                ],
+                "summary": "Created an innings",
+                "parameters": [
+                    {
+                        "description": "Create Innings Model",
+                        "name": "model",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requestmodels.CreateInningsModel"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Series ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Match ID",
+                        "name": "matchid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responsemodels.ErrorModel"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/responsemodels.ErrorModel"
+                        }
+                    }
+                }
+            }
+        },
+        "/series/:id/matches/:matchid/innings/:inningsid/start": {
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Game"
+                ],
+                "summary": "Created an innings",
+                "parameters": [
+                    {
+                        "description": "Start Innings Model",
+                        "name": "model",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requestmodels.StartInningsModel"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Series ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Match ID",
+                        "name": "matchid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Innings ID",
+                        "name": "inningsid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {},
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responsemodels.ErrorModel"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/responsemodels.ErrorModel"
+                        }
+                    }
+                }
+            }
+        },
         "/series/:id/teams": {
             "post": {
                 "consumes": [
@@ -716,6 +836,29 @@ var doc = `{
         }
     },
     "definitions": {
+        "gin.H": {
+            "type": "object",
+            "additionalProperties": true
+        },
+        "requestmodels.CreateInningsModel": {
+            "type": "object",
+            "required": [
+                "battingTeamId",
+                "bowlingTeamId",
+                "tossWinningTeamId"
+            ],
+            "properties": {
+                "battingTeamId": {
+                    "type": "string"
+                },
+                "bowlingTeamId": {
+                    "type": "string"
+                },
+                "tossWinningTeamId": {
+                    "type": "string"
+                }
+            }
+        },
         "requestmodels.Match": {
             "type": "object",
             "required": [
@@ -856,6 +999,25 @@ var doc = `{
                     }
                 },
                 "teamId": {
+                    "type": "string"
+                }
+            }
+        },
+        "requestmodels.StartInningsModel": {
+            "type": "object",
+            "required": [
+                "bowlerID",
+                "nonStrikeBatsmanId",
+                "strikeBatsmanId"
+            ],
+            "properties": {
+                "bowlerID": {
+                    "type": "string"
+                },
+                "nonStrikeBatsmanId": {
+                    "type": "string"
+                },
+                "strikeBatsmanId": {
                     "type": "string"
                 }
             }

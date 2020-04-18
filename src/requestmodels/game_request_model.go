@@ -65,3 +65,19 @@ type MatchPlayingSquadModel struct {
 type UpdateSeriesStatusModel struct {
 	Status models.SeriesState `json:"status" form:"status" xml:"status" binding:"required"`
 }
+
+// CreateInningsModel godoc
+// @Summary Define create model of an innings
+type CreateInningsModel struct {
+	BattingTeamID     string `json:"battingTeamId" binding:"required"`
+	BowlingTeamID     string `json:"bowlingTeamId" binding:"required"`
+	TossWinningTeamID string `json:"tossWinningTeamId" binding:"required"`
+}
+
+// StartInningsModel godoc
+// @Summary Define start innings model
+type StartInningsModel struct {
+	StrikeBatsmanID    string `json:"strikeBatsmanId" binding:"required"`
+	NonStrikeBatsmanID string `json:"nonStrikeBatsmanId" binding:"required"`
+	BowlerID           string `json:"bowlerID" binding:"required"`
+}

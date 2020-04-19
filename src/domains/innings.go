@@ -19,4 +19,8 @@ type Innings struct {
 	BowlingTeamID primitive.ObjectID
 	TossResult    primitive.ObjectID
 	InningsStatus models.SeriesState
+	Run           int
+	Wicket        int
+	WicketLimit   int
+	Target        int
 }

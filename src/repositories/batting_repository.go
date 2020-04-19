@@ -68,6 +68,31 @@ func (repo *BattingRepository) GetByID(ctx context.Context, id string) domains.B
 	return batting
 }
 
+//GetCurrentBatsman retrieves current batsman in crease
+//and return the collection.
+func (repo *BattingRepository) GetCurrentBatsman(ctx context.Context, inningsID string) []domains.Batting {
+	collections := repo.DB.Database.Collection(battingCollectionName)
+	objID, err := primitive.ObjectIDFromHex(inningsID)
+	if err != nil {
+		panic(err)
+	}
+
+	cursor, err := collections.Find(ctx, bson.M{"inningsid": objID, "isincrease": true})
+
+	battings := []domains.Batting{}
+	if err != nil {
+		panic(err)
+	}
+
+	for cursor.Next(ctx) {
+		batting := domains.Batting{}
+		cursor.Decode(&batting)
+		battings = append(battings, batting)
+	}
+
+	return battings
+}
+
 //Update update a batting object into db
 //and return that updated item.
 func (repo *BattingRepository) Update(ctx context.Context, id string, updates map[string]interface{}) domains.Batting {

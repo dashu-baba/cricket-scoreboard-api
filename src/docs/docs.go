@@ -29,6 +29,121 @@ var doc = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/innings/:inningsid/over/:overid": {
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Innings"
+                ],
+                "summary": "Update an over",
+                "parameters": [
+                    {
+                        "description": "Over Update Model",
+                        "name": "model",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requestmodels.OverUpdateModel"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Innings ID",
+                        "name": "inningsid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Over ID",
+                        "name": "overid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {},
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responsemodels.ErrorModel"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/responsemodels.ErrorModel"
+                        }
+                    }
+                }
+            }
+        },
+        "/innings/:inningsid/start": {
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Innings"
+                ],
+                "summary": "Created an innings",
+                "parameters": [
+                    {
+                        "description": "Start Innings Model",
+                        "name": "model",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requestmodels.StartInningsModel"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Series ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Match ID",
+                        "name": "matchid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Innings ID",
+                        "name": "inningsid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {},
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responsemodels.ErrorModel"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/responsemodels.ErrorModel"
+                        }
+                    }
+                }
+            }
+        },
         "/series": {
             "post": {
                 "consumes": [
@@ -350,67 +465,6 @@ var doc = `{
                             "$ref": "#/definitions/gin.H"
                         }
                     },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/responsemodels.ErrorModel"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/responsemodels.ErrorModel"
-                        }
-                    }
-                }
-            }
-        },
-        "/series/:id/matches/:matchid/innings/:inningsid/start": {
-            "put": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Game"
-                ],
-                "summary": "Created an innings",
-                "parameters": [
-                    {
-                        "description": "Start Innings Model",
-                        "name": "model",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/requestmodels.StartInningsModel"
-                        }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Series ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Match ID",
-                        "name": "matchid",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Innings ID",
-                        "name": "inningsid",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "204": {},
                     "400": {
                         "description": "Bad Request",
                         "schema": {
@@ -918,6 +972,28 @@ var doc = `{
                 }
             }
         },
+        "requestmodels.OverUpdateModel": {
+            "type": "object",
+            "required": [
+                "nb",
+                "run"
+            ],
+            "properties": {
+                "extra": {
+                    "type": "string"
+                },
+                "nb": {
+                    "type": "boolean"
+                },
+                "run": {
+                    "type": "integer"
+                },
+                "wicket": {
+                    "type": "object",
+                    "$ref": "#/definitions/requestmodels.WicketDetailsModel"
+                }
+            }
+        },
         "requestmodels.PlayerCreateModel": {
             "type": "object",
             "required": [
@@ -1106,6 +1182,28 @@ var doc = `{
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "requestmodels.WicketDetailsModel": {
+            "type": "object",
+            "required": [
+                "batsmanID",
+                "bowlerID",
+                "wicketType"
+            ],
+            "properties": {
+                "batsmanID": {
+                    "type": "string"
+                },
+                "bowlerID": {
+                    "type": "string"
+                },
+                "supportID": {
+                    "type": "string"
+                },
+                "wicketType": {
+                    "type": "integer"
                 }
             }
         },

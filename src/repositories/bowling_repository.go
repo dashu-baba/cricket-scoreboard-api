@@ -44,6 +44,28 @@ func (repo *BowlingRepository) InsertMany(ctx context.Context, players []domains
 	}
 }
 
+//GetCurrentBowler retrieves current bowler in crease
+//and return the collection.
+func (repo *BowlingRepository) GetCurrentBowler(ctx context.Context, inningsID string) domains.Bowling {
+	collections := repo.DB.Database.Collection(bowlingCollectionName)
+	objID, err := primitive.ObjectIDFromHex(inningsID)
+	if err != nil {
+		panic(err)
+	}
+
+	findResult := collections.FindOne(ctx, bson.M{"inningsid": objID, "iscurrent": true})
+
+	bowling := domains.Bowling{}
+	err = findResult.Decode(&bowling)
+	if err != nil {
+		if err != mongo.ErrNoDocuments {
+			panic(err)
+		}
+	}
+
+	return bowling
+}
+
 //GetByID retrieves macth object from db by id
 //and return that object.
 func (repo *BowlingRepository) GetByID(ctx context.Context, id string) domains.Bowling {

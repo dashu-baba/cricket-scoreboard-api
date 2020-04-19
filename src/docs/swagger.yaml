@@ -54,6 +54,21 @@ definitions:
     required:
     - teamId
     type: object
+  requestmodels.OverUpdateModel:
+    properties:
+      extra:
+        type: string
+      nb:
+        type: boolean
+      run:
+        type: integer
+      wicket:
+        $ref: '#/definitions/requestmodels.WicketDetailsModel'
+        type: object
+    required:
+    - nb
+    - run
+    type: object
   requestmodels.PlayerCreateModel:
     properties:
       name:
@@ -180,6 +195,21 @@ definitions:
           type: string
         type: array
     type: object
+  requestmodels.WicketDetailsModel:
+    properties:
+      batsmanID:
+        type: string
+      bowlerID:
+        type: string
+      supportID:
+        type: string
+      wicketType:
+        type: integer
+    required:
+    - batsmanID
+    - bowlerID
+    - wicketType
+    type: object
   responsemodels.ErrorModel:
     properties:
       errorCode:
@@ -237,6 +267,83 @@ info:
   title: Cricket Scoreboard API
   version: "1.0"
 paths:
+  /innings/:inningsid/over/:overid:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Over Update Model
+        in: body
+        name: model
+        required: true
+        schema:
+          $ref: '#/definitions/requestmodels.OverUpdateModel'
+      - description: Innings ID
+        in: path
+        name: inningsid
+        required: true
+        type: string
+      - description: Over ID
+        in: path
+        name: overid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204": {}
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responsemodels.ErrorModel'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responsemodels.ErrorModel'
+      summary: Update an over
+      tags:
+      - Innings
+  /innings/:inningsid/start:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Start Innings Model
+        in: body
+        name: model
+        required: true
+        schema:
+          $ref: '#/definitions/requestmodels.StartInningsModel'
+      - description: Series ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Match ID
+        in: path
+        name: matchid
+        required: true
+        type: string
+      - description: Innings ID
+        in: path
+        name: inningsid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204": {}
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responsemodels.ErrorModel'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responsemodels.ErrorModel'
+      summary: Created an innings
+      tags:
+      - Innings
   /series:
     post:
       consumes:
@@ -448,47 +555,6 @@ paths:
           description: Created
           schema:
             $ref: '#/definitions/gin.H'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/responsemodels.ErrorModel'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/responsemodels.ErrorModel'
-      summary: Created an innings
-      tags:
-      - Game
-  /series/:id/matches/:matchid/innings/:inningsid/start:
-    put:
-      consumes:
-      - application/json
-      parameters:
-      - description: Start Innings Model
-        in: body
-        name: model
-        required: true
-        schema:
-          $ref: '#/definitions/requestmodels.StartInningsModel'
-      - description: Series ID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Match ID
-        in: path
-        name: matchid
-        required: true
-        type: string
-      - description: Innings ID
-        in: path
-        name: inningsid
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "204": {}
         "400":
           description: Bad Request
           schema:

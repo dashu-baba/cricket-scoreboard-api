@@ -426,46 +426,6 @@ func (controller GameController) CreateInnings(c *gin.Context) {
 	})
 }
 
-//StartInnings godoc
-// @Summary Created an innings
-// @Tags Game
-// @Accept  json
-// @Produce json
-// @Param model body requestmodels.StartInningsModel true "Start Innings Model"
-// @Param id path string true "Series ID" string
-// @Param matchid path string true "Match ID" string
-// @Param inningsid path string true "Innings ID" string
-// @Success 204
-// @Failure 400 {object} responsemodels.ErrorModel
-// @Failure 404 {object} responsemodels.ErrorModel
-// @Router /series/:id/matches/:matchid/innings/:inningsid/start [put]
-func (controller GameController) StartInnings(c *gin.Context) {
-	var (
-		ctx    context.Context
-		cancel context.CancelFunc
-	)
-
-	ctx, cancel = context.WithCancel(context.Background())
-	defer cancel()
-
-	seriesid := c.Param("id")
-	matchid := c.Param("matchid")
-	inningsid := c.Param("inningsid")
-	var request, err = validators.ValidateStartInningsModel(c)
-
-	if err != nil {
-		c.JSON(http.StatusBadRequest, responsemodels.ErrorModel{
-			ErrorCode: http.StatusBadRequest,
-			Message:   err.Error(),
-		})
-		return
-	}
-
-	controller.GameService.StartInnings(ctx, seriesid, matchid, inningsid, request)
-
-	c.JSON(http.StatusNoContent, nil)
-}
-
 // //GetInnings godoc
 // // @Summary Created an innings
 // // @Tags Game

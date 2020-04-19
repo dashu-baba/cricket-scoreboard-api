@@ -13,6 +13,7 @@ type Batting struct {
 	ID          primitive.ObjectID
 	Run         int
 	Ball        int
+	Zero        int
 	One         int
 	Two         int
 	Three       int

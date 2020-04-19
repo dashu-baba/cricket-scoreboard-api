@@ -2,6 +2,8 @@
 package domains
 
 import (
+	"cricket-scoreboard-api/src/models"
+
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -14,6 +16,7 @@ type Over struct {
 	Noball     int
 	Bye        int
 	LB         int
+	Zero       int
 	One        int
 	Two        int
 	Three      int
@@ -23,6 +26,15 @@ type Over struct {
 	IsRunning  bool
 	InningsID  primitive.ObjectID
 	BowlerID   primitive.ObjectID
-	Wickets    []Batting
+	Wickets    []Wicket
 	Squence    string
+	Ball       int
+}
+
+// Wicket godoc
+// @Summary Define Wicket model
+type Wicket struct {
+	BatsmanID primitive.ObjectID
+	SupportID primitive.ObjectID
+	OutType   models.OutType
 }

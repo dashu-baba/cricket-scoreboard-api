@@ -47,12 +47,15 @@ func (repo *OverRepository) InsertMany(ctx context.Context, players []domains.Ov
 
 //GetLastOverNumber godoc
 //Get the last entry of the over
-func (repo *OverRepository) GetLastOverNumber(ctx context.Context) int {
+func (repo *OverRepository) GetLastOverNumber(ctx context.Context, inningsid string) int {
 	collections := repo.DB.Database.Collection(overCollectionName)
-
+	objID, err := primitive.ObjectIDFromHex(inningsid)
+	if err != nil {
+		panic(err)
+	}
 	option := options.FindOne()
 	option.SetSort(bson.M{"overnumber": -1})
-	result := collections.FindOne(ctx, bson.M{}, option)
+	result := collections.FindOne(ctx, bson.M{"inningsid": objID}, option)
 	if result.Err() != nil {
 		if result.Err().Error() == "mongo: no documents in result" {
 			return 0
@@ -87,6 +90,27 @@ func (repo *OverRepository) GetByID(ctx context.Context, id string) domains.Over
 	}
 
 	return over
+}
+
+//HasAnyRunningOver checks an running over exists by innings id
+//and return bool.
+func (repo *OverRepository) HasAnyRunningOver(ctx context.Context, inningsid string) bool {
+	collections := repo.DB.Database.Collection(overCollectionName)
+	objID, err := primitive.ObjectIDFromHex(inningsid)
+	if err != nil {
+		panic(err)
+	}
+
+	result := collections.FindOne(ctx, bson.M{"inningsid": objID, "isrunning": true})
+
+	if result.Err() != nil {
+		if result.Err().Error() == "mongo: no documents in result" {
+			return false
+		}
+		panic(result.Err())
+	}
+
+	return true
 }
 
 //Update update a over object into db

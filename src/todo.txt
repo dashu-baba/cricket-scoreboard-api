@@ -4,3 +4,4 @@ Current Task : Addition of
     a. RemovePlayer add validation for in squad Player
     b. UpdatePlayer should reflect to match->participants entity
     c. UpdateTeam should reflect to match entity
+2. Enable support for test match

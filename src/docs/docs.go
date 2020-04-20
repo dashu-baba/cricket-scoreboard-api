@@ -29,6 +29,138 @@ var doc = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/innings/:inningsid/batsman": {
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Innings"
+                ],
+                "summary": "Add a new batsman in the crease",
+                "parameters": [
+                    {
+                        "description": "Next Batsman Model",
+                        "name": "model",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requestmodels.NextBatsmanModel"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Series ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Match ID",
+                        "name": "matchid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Innings ID",
+                        "name": "inningsid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responsemodels.ErrorModel"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/responsemodels.ErrorModel"
+                        }
+                    }
+                }
+            }
+        },
+        "/innings/:inningsid/over": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Innings"
+                ],
+                "summary": "Created an innings",
+                "parameters": [
+                    {
+                        "description": "Start Innings Model",
+                        "name": "model",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requestmodels.StartInningsModel"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Series ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Match ID",
+                        "name": "matchid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Innings ID",
+                        "name": "inningsid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responsemodels.ErrorModel"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/responsemodels.ErrorModel"
+                        }
+                    }
+                }
+            }
+        },
         "/innings/:inningsid/over/:overid": {
             "put": {
                 "consumes": [
@@ -968,6 +1100,17 @@ var doc = `{
                     }
                 },
                 "teamId": {
+                    "type": "string"
+                }
+            }
+        },
+        "requestmodels.NextBatsmanModel": {
+            "type": "object",
+            "required": [
+                "batsmanID"
+            ],
+            "properties": {
+                "batsmanID": {
                     "type": "string"
                 }
             }

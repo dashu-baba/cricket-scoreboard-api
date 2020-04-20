@@ -13,7 +13,7 @@ type Innings struct {
 	ID            primitive.ObjectID
 	Number        int
 	OverLimit     int
-	OverPlayed    int
+	OverPlayed    float64
 	MatchID       primitive.ObjectID
 	BattingTeamID primitive.ObjectID
 	BowlingTeamID primitive.ObjectID

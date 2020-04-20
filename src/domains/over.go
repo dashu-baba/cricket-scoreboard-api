@@ -27,7 +27,7 @@ type Over struct {
 	InningsID  primitive.ObjectID
 	BowlerID   primitive.ObjectID
 	Wickets    []Wicket
-	Squence    string
+	Sequence   string
 	Ball       int
 }
 

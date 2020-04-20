@@ -117,7 +117,9 @@ func NewRouter() *gin.Engine {
 	innings := router.Group("/innings")
 	{
 		innings.PUT(":inningsid/start", inningsController.StartInnings)
+		innings.PUT(":inningsid/batsman", inningsController.AddNextBatsman)
 		innings.PUT(":inningsid/over/:overid", inningsController.UpdateOver)
+		innings.POST(":inningsid/over", inningsController.StartNewOver)
 	}
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 

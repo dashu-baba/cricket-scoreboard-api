@@ -54,6 +54,13 @@ definitions:
     required:
     - teamId
     type: object
+  requestmodels.NextBatsmanModel:
+    properties:
+      batsmanID:
+        type: string
+    required:
+    - batsmanID
+    type: object
   requestmodels.OverUpdateModel:
     properties:
       extra:
@@ -267,6 +274,94 @@ info:
   title: Cricket Scoreboard API
   version: "1.0"
 paths:
+  /innings/:inningsid/batsman:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Next Batsman Model
+        in: body
+        name: model
+        required: true
+        schema:
+          $ref: '#/definitions/requestmodels.NextBatsmanModel'
+      - description: Series ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Match ID
+        in: path
+        name: matchid
+        required: true
+        type: string
+      - description: Innings ID
+        in: path
+        name: inningsid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            $ref: '#/definitions/gin.H'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responsemodels.ErrorModel'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responsemodels.ErrorModel'
+      summary: Add a new batsman in the crease
+      tags:
+      - Innings
+  /innings/:inningsid/over:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Start Innings Model
+        in: body
+        name: model
+        required: true
+        schema:
+          $ref: '#/definitions/requestmodels.StartInningsModel'
+      - description: Series ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Match ID
+        in: path
+        name: matchid
+        required: true
+        type: string
+      - description: Innings ID
+        in: path
+        name: inningsid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            $ref: '#/definitions/gin.H'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responsemodels.ErrorModel'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responsemodels.ErrorModel'
+      summary: Created an innings
+      tags:
+      - Innings
   /innings/:inningsid/over/:overid:
     put:
       consumes:

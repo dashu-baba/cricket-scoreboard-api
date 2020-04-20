@@ -24,3 +24,15 @@ type WicketDetailsModel struct {
 	SupportID  string         `json:"supportID"`
 	WicketType models.OutType `json:"wicketType" binding:"required"`
 }
+
+// CreateOverModel godoc
+// @Summary Define create over model
+type CreateOverModel struct {
+	BowlerID string `json:"bowlerID" binding:"required"`
+}
+
+// NextBatsmanModel godoc
+// @Summary Define add batsman model
+type NextBatsmanModel struct {
+	BatsmanID string `json:"batsmanID" binding:"required"`
+}

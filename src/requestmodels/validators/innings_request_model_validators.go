@@ -21,3 +21,25 @@ func ValidateOverUpdateModel(c *gin.Context) (requestmodels.OverUpdateModel, err
 
 	return model, nil
 }
+
+//ValidateCreateOverModel godoc
+// @Summary validates the CreateOverModel model
+func ValidateCreateOverModel(c *gin.Context) (requestmodels.CreateOverModel, error) {
+	model := requestmodels.CreateOverModel{}
+	if err := c.ShouldBind(&model); err != nil {
+		return model, err
+	}
+
+	return model, nil
+}
+
+//ValidateNextBatsmanModel godoc
+// @Summary validates the NextBatsmanModel model
+func ValidateNextBatsmanModel(c *gin.Context) (requestmodels.NextBatsmanModel, error) {
+	model := requestmodels.NextBatsmanModel{}
+	if err := c.ShouldBind(&model); err != nil {
+		return model, err
+	}
+
+	return model, nil
+}

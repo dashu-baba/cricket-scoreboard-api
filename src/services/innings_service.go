@@ -8,6 +8,7 @@ import (
 	"cricket-scoreboard-api/src/repositories"
 	"cricket-scoreboard-api/src/requestmodels"
 	"cricket-scoreboard-api/src/responsemodels"
+	"math"
 	"net/http"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -273,6 +274,7 @@ func (service *InningsService) UpdateOver(ctx context.Context, inningsID string,
 	}
 
 	overUpdates := map[string]interface{}{}
+	over.Sequence += " "
 	batsmanUpdates := map[string]interface{}{}
 	nonStrikeUpdates := map[string]interface{}{}
 	bowlerUpdates := map[string]interface{}{}
@@ -382,20 +384,17 @@ func (service *InningsService) UpdateOver(ctx context.Context, inningsID string,
 
 		innings.Wicket++
 		inningsUpdates["wicket"] = innings.Wicket
+		over.Sequence += "wk"
 	}
 
 	if model.Extra != "" {
-		overUpdates["ball"] = over.Ball + 1
+		over.Ball++
+		overUpdates["ball"] = over.Ball
 	}
 
 	run := 0
 	batsmanUpdates["ball"] = batsman.Ball + 1
 	batsmanUpdates, nonStrikeUpdates = ChangeCrease(batsmanUpdates, nonStrikeUpdates, model)
-
-	if model.NB {
-		over.Noball++
-		overUpdates["noball"] = over.Noball
-	}
 
 	if model.Extra == "" {
 		overUpdates, batsmanUpdates, run = UpdateRun(&over, overUpdates, &batsman, batsmanUpdates, run, model)
@@ -403,7 +402,15 @@ func (service *InningsService) UpdateOver(ctx context.Context, inningsID string,
 		overUpdates, run = UpdateExtra(&over, overUpdates, run, model)
 	}
 
-	inningsUpdates["run"] = innings.Run + run
+	if model.NB {
+		over.Noball++
+		overUpdates["noball"] = over.Noball
+		over.Sequence += "nb"
+	}
+	overUpdates["sequence"] = over.Sequence
+
+	innings.Run += run
+	inningsUpdates["run"] = innings.Run
 
 	if over.Ball == 6 {
 		overUpdates["isrunning"] = false
@@ -417,13 +424,65 @@ func (service *InningsService) UpdateOver(ctx context.Context, inningsID string,
 		service.BowlingRepository.Update(ctx, bowler.ID.Hex(), bowlerUpdates)
 		batsmanUpdates["isinstrike"] = !batsmanUpdates["isinstrike"].(bool)
 		nonStrikeUpdates["isinstrike"] = !nonStrikeUpdates["isinstrike"].(bool)
-		innings.OverPlayed++
-		inningsUpdates["overplayed"] = innings.OverPlayed
+		innings.OverPlayed = math.Ceil(innings.OverPlayed) + 1
 	}
 
-	if innings.OverPlayed == innings.OverLimit || innings.WicketLimit == innings.Wicket+1 {
+	matchUpdates := map[string]interface{}{}
+	if int(innings.OverPlayed) == innings.OverLimit || innings.WicketLimit == innings.Wicket+1 {
 		inningsUpdates["inningsstatus"] = models.Finished
+		if innings.Number == 2 {
+			match.MatchStatus = models.Finished
+			match.Result = domains.MatchResult{
+				Result:        models.Completed,
+				LosingTeamID:  innings.BattingTeamID,
+				WinningTeamID: innings.BowlingTeamID,
+				WinLoseType:   models.ByRun,
+			}
+			matchUpdates["matchstatus"] = match.MatchStatus
+			matchUpdates["result"] = match.Result
+			service.MatchRepository.Update(ctx, match.ID.Hex(), matchUpdates)
+		} else {
+			innings2 := domains.Innings{
+				BattingTeamID: innings.BowlingTeamID,
+				BowlingTeamID: innings.BattingTeamID,
+				ID:            primitive.NewObjectID(),
+				MatchID:       match.ID,
+				Number:        innings.Number + 1,
+				OverLimit:     match.OverLimit,
+				TossResult:    innings.TossResult,
+				InningsStatus: models.NotStarted,
+				Run:           0,
+				Wicket:        0,
+				WicketLimit:   innings.WicketLimit,
+				Target:        innings.Run + 1,
+			}
+
+			inningsList := []domains.Innings{}
+			inningsList = append(inningsList, innings2)
+			service.InningsRepository.InsertMany(ctx, inningsList)
+		}
+		//TODO test match draw
 	}
+
+	//This section determines the win/loss result
+	if innings.Target > 0 && innings.Target <= innings.Run {
+		inningsUpdates["inningsstatus"] = models.Finished
+		innings.OverPlayed += float64(over.Ball / 10)
+
+		match.MatchStatus = models.Finished
+		match.Result = domains.MatchResult{
+			Result:        models.Completed,
+			WinningTeamID: innings.BattingTeamID,
+			LosingTeamID:  innings.BowlingTeamID,
+			WinLoseType:   models.ByWicket,
+		}
+
+		matchUpdates["matchstatus"] = match.MatchStatus
+		matchUpdates["result"] = match.Result
+		service.MatchRepository.Update(ctx, match.ID.Hex(), matchUpdates)
+	}
+
+	inningsUpdates["overplayed"] = innings.OverPlayed
 
 	service.BattingRepository.Update(ctx, batsman.ID.Hex(), batsmanUpdates)
 	service.BattingRepository.Update(ctx, nonStrikebatsman.ID.Hex(), nonStrikeUpdates)
@@ -449,6 +508,7 @@ func UpdateRun(over *domains.Over, overUpdate map[string]interface{},
 		{
 			over.One++
 			overUpdate["one"] = over.One
+			over.Sequence += "1"
 			batsman.One++
 			batsmanUpdate["one"] = batsman.One
 			batsmanUpdate["run"] = batsman.Run + 1
@@ -459,6 +519,7 @@ func UpdateRun(over *domains.Over, overUpdate map[string]interface{},
 		{
 			over.Two++
 			overUpdate["two"] = over.Two
+			over.Sequence += "2"
 			batsman.Two++
 			batsmanUpdate["two"] = batsman.Two
 			batsmanUpdate["run"] = batsman.Run + 2
@@ -469,6 +530,7 @@ func UpdateRun(over *domains.Over, overUpdate map[string]interface{},
 		{
 			over.Three++
 			overUpdate["three"] = over.Three
+			over.Sequence += "3"
 			batsman.Three++
 			batsmanUpdate["three"] = batsman.Three
 			batsmanUpdate["run"] = batsman.Run + 3
@@ -479,6 +541,7 @@ func UpdateRun(over *domains.Over, overUpdate map[string]interface{},
 		{
 			over.Four++
 			overUpdate["four"] = over.Four
+			over.Sequence += "4"
 			batsman.Four++
 			batsmanUpdate["four"] = batsman.Four
 			batsmanUpdate["run"] = batsman.Run + 4
@@ -489,6 +552,7 @@ func UpdateRun(over *domains.Over, overUpdate map[string]interface{},
 		{
 			over.Five++
 			overUpdate["five"] = over.Five
+			over.Sequence += "5"
 			batsman.Five++
 			batsmanUpdate["five"] = batsman.Five
 			batsmanUpdate["run"] = batsman.Run + 5
@@ -499,6 +563,7 @@ func UpdateRun(over *domains.Over, overUpdate map[string]interface{},
 		{
 			over.Six++
 			overUpdate["six"] = over.Six
+			over.Sequence += "6"
 			batsman.Six++
 			batsmanUpdate["six"] = batsman.Six
 			batsmanUpdate["run"] = batsman.Run + 6
@@ -534,6 +599,7 @@ func UpdateExtra(over *domains.Over, overUpdate map[string]interface{},
 		{
 			over.Wide++
 			overUpdate["wide"] = over.Wide
+			over.Sequence += "wd"
 			over.Bye += model.Run
 			overUpdate["bye"] = over.Bye
 			return overUpdate, run
@@ -542,15 +608,145 @@ func UpdateExtra(over *domains.Over, overUpdate map[string]interface{},
 		{
 			over.Bye += model.Run
 			overUpdate["bye"] = over.Bye
+			over.Sequence += "b"
 			return overUpdate, run
 		}
 	case "lb":
 		{
 			over.LB += model.Run
 			overUpdate["lb"] = over.LB
+			over.Sequence += "lb"
 			return overUpdate, run
 		}
 	}
 
 	return overUpdate, run
+}
+
+//StartNewOver godoc
+// @Summary start a over
+func (service *InningsService) StartNewOver(ctx context.Context, inningsID string,
+	model requestmodels.CreateOverModel) (string, responsemodels.ErrorModel) {
+
+	innings := service.InningsRepository.GetByID(ctx, inningsID)
+	if innings.ID.String() == "" {
+		return "", responsemodels.ErrorModel{
+			ErrorCode: http.StatusNotFound,
+			Message:   "The innings you are tried to modified is not exists",
+		}
+	}
+
+	hasRunningOver := service.OverRepository.HasAnyRunningOver(ctx, inningsID)
+	if hasRunningOver {
+		return "", responsemodels.ErrorModel{
+			ErrorCode: http.StatusBadRequest,
+			Message:   "Can't start a new over as an over is already running",
+		}
+	}
+
+	match := service.MatchRepository.GetByID(ctx, innings.MatchID.Hex())
+	bowlingTeam := domains.MatchParticipant{}
+	if match.Team1.TeamID == innings.BowlingTeamID {
+		bowlingTeam = match.Team1
+	} else {
+		bowlingTeam = match.Team2
+	}
+
+	var exists = false
+	for _, val := range bowlingTeam.PlayingSquad {
+		if val.Hex() == model.BowlerID {
+			exists = true
+		}
+	}
+
+	if !exists {
+		return "", responsemodels.ErrorModel{
+			ErrorCode: http.StatusBadRequest,
+			Message:   "Player not exists in squad",
+		}
+	}
+
+	bowlerID, err := primitive.ObjectIDFromHex(model.BowlerID)
+	if err != nil {
+		panic(err)
+	}
+
+	num := service.OverRepository.GetLastOverNumber(ctx, inningsID)
+
+	over := domains.Over{
+		ID:         primitive.NewObjectID(),
+		InningsID:  innings.ID,
+		IsRunning:  true,
+		BowlerID:   bowlerID,
+		OverNumber: num + 1,
+		Ball:       0,
+	}
+
+	overs := []domains.Over{}
+	service.OverRepository.InsertMany(ctx, append(overs, over))
+
+	return over.ID.Hex(), responsemodels.ErrorModel{}
+}
+
+//AddNextBatsman godoc
+// @Summary Add a new batsman in the crease
+func (service *InningsService) AddNextBatsman(ctx context.Context, inningsID string,
+	model requestmodels.NextBatsmanModel) responsemodels.ErrorModel {
+
+	innings := service.InningsRepository.GetByID(ctx, inningsID)
+	if innings.ID.String() == "" {
+		return responsemodels.ErrorModel{
+			ErrorCode: http.StatusNotFound,
+			Message:   "The innings you are tried to modified is not exists",
+		}
+	}
+
+	activeBatsman := service.BattingRepository.GetCurrentBatsman(ctx, inningsID)
+	if len(activeBatsman) == 2 {
+		return responsemodels.ErrorModel{
+			ErrorCode: http.StatusBadRequest,
+			Message:   "Can't add a new batsman as there is already 2 batsman in the crease",
+		}
+	}
+
+	match := service.MatchRepository.GetByID(ctx, innings.MatchID.Hex())
+	battingTeam := domains.MatchParticipant{}
+	if match.Team1.TeamID == innings.BattingTeamID {
+		battingTeam = match.Team1
+	} else {
+		battingTeam = match.Team2
+	}
+
+	var exists = false
+	for _, val := range battingTeam.PlayingSquad {
+		if val.Hex() == model.BatsmanID {
+			exists = true
+		}
+	}
+
+	if !exists {
+		return responsemodels.ErrorModel{
+			ErrorCode: http.StatusBadRequest,
+			Message:   "Player not exists in squad",
+		}
+	}
+
+	batsmanID, err := primitive.ObjectIDFromHex(model.BatsmanID)
+	if err != nil {
+		panic(err)
+	}
+
+	batsman := domains.Batting{
+		ID:         primitive.NewObjectID(),
+		InningsID:  innings.ID,
+		IsInCrease: true,
+		IsInStrike: !activeBatsman[0].IsInStrike,
+		PlayerID:   batsmanID,
+		Ball:       0,
+	}
+
+	batsmans := []domains.Batting{}
+	service.BattingRepository.InsertMany(ctx, append(batsmans, batsman))
+
+	return responsemodels.ErrorModel{}
 }

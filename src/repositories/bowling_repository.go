@@ -30,10 +30,10 @@ func NewBowlingRepository(DB *driver.DB) *BowlingRepository {
 
 //InsertMany godoc
 //Insert a collection of bowling and return the added collection
-func (repo *BowlingRepository) InsertMany(ctx context.Context, players []domains.Bowling) {
+func (repo *BowlingRepository) InsertMany(ctx context.Context, bowlers []domains.Bowling) {
 	collections := repo.DB.Database.Collection(bowlingCollectionName)
 	items := []interface{}{}
-	for _, value := range players {
+	for _, value := range bowlers {
 		value.ID = primitive.NewObjectID()
 		items = append(items, value)
 	}
@@ -80,9 +80,7 @@ func (repo *BowlingRepository) GetByID(ctx context.Context, id string) domains.B
 	bowling := domains.Bowling{}
 	err = findResult.Decode(&bowling)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return domains.Bowling{}
-		} else {
+		if err != mongo.ErrNoDocuments {
 			panic(err)
 		}
 	}
@@ -118,4 +116,34 @@ func (repo *BowlingRepository) Update(ctx context.Context, id string, updates ma
 	}
 
 	return repo.GetByID(ctx, id)
+}
+
+//GetAllByIds godoc
+//Find collection by a collection of id and returns the collection
+func (repo *BowlingRepository) GetAllByIds(ctx context.Context, ids []string) []domains.Bowling {
+	oids := []primitive.ObjectID{}
+	for _, val := range ids {
+		oid, err := primitive.ObjectIDFromHex(val)
+		if err != nil {
+			panic(err)
+		}
+		oids = append(oids, oid)
+	}
+
+	collections := repo.DB.Database.Collection(bowlingCollectionName)
+
+	cursor, err := collections.Find(ctx, bson.M{"id": bson.M{"$in": oids}})
+
+	if err != nil {
+		panic(err)
+	}
+
+	bowlers := []domains.Bowling{}
+	for cursor.Next(ctx) {
+		player := domains.Bowling{}
+		cursor.Decode(&player)
+		bowlers = append(bowlers, player)
+	}
+
+	return bowlers
 }

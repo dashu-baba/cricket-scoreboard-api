@@ -29,6 +29,49 @@ var doc = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/innings/:inningsid": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Innings"
+                ],
+                "summary": "Get the innings summary",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Innings ID",
+                        "name": "inningsid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responsemodels.InningsSummary"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responsemodels.ErrorModel"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/responsemodels.ErrorModel"
+                        }
+                    }
+                }
+            }
+        },
         "/innings/:inningsid/batsman": {
             "put": {
                 "consumes": [
@@ -50,20 +93,6 @@ var doc = `{
                         "schema": {
                             "$ref": "#/definitions/requestmodels.NextBatsmanModel"
                         }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Series ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Match ID",
-                        "name": "matchid",
-                        "in": "path",
-                        "required": true
                     },
                     {
                         "type": "string",
@@ -448,6 +477,54 @@ var doc = `{
             }
         },
         "/series/:id/matches/:matchid": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Game"
+                ],
+                "summary": "Get the summary of a match",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Series ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Match ID",
+                        "name": "matchid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responsemodels.MatchSummary"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responsemodels.ErrorModel"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/responsemodels.ErrorModel"
+                        }
+                    }
+                }
+            },
             "put": {
                 "consumes": [
                     "application/json"
@@ -1357,6 +1434,119 @@ var doc = `{
                     "type": "integer"
                 },
                 "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "responsemodels.InningsBatsman": {
+            "type": "object",
+            "properties": {
+                "ball": {
+                    "type": "integer"
+                },
+                "four": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "inInStrike": {
+                    "type": "boolean"
+                },
+                "playerId": {
+                    "type": "string"
+                },
+                "run": {
+                    "type": "integer"
+                },
+                "six": {
+                    "type": "integer"
+                }
+            }
+        },
+        "responsemodels.InningsBowler": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "isActive": {
+                    "type": "boolean"
+                },
+                "over": {
+                    "type": "integer"
+                },
+                "playerId": {
+                    "type": "string"
+                },
+                "run": {
+                    "type": "integer"
+                },
+                "wickets": {
+                    "type": "integer"
+                }
+            }
+        },
+        "responsemodels.InningsSummary": {
+            "type": "object",
+            "properties": {
+                "batsmans": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/responsemodels.InningsBatsman"
+                    }
+                },
+                "bowlers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/responsemodels.InningsBowler"
+                    }
+                },
+                "currentOver": {
+                    "type": "object",
+                    "$ref": "#/definitions/responsemodels.Over"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "matchId": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                }
+            }
+        },
+        "responsemodels.MatchSummary": {
+            "type": "object",
+            "properties": {
+                "currentInningsId": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "matchType": {
+                    "type": "integer"
+                },
+                "seriesId": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                }
+            }
+        },
+        "responsemodels.Over": {
+            "type": "object",
+            "properties": {
+                "ball": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "sequence": {
                     "type": "string"
                 }
             }

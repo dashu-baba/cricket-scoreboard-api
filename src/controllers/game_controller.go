@@ -209,6 +209,39 @@ func (controller GameController) CreateMatches(c *gin.Context) {
 	c.JSON(http.StatusNoContent, nil)
 }
 
+//GetMatchSummary godoc
+// @Summary Get the summary of a match
+// @Tags Game
+// @Accept  json
+// @Produce json
+// @Param id path string true "Series ID" string
+// @Param matchid path string true "Match ID" string
+// @Success 200 {object} responsemodels.MatchSummary
+// @Failure 400 {object} responsemodels.ErrorModel
+// @Failure 404 {object} responsemodels.ErrorModel
+// @Router /series/:id/matches/:matchid [get]
+func (controller GameController) GetMatchSummary(c *gin.Context) {
+	var (
+		ctx    context.Context
+		cancel context.CancelFunc
+	)
+
+	ctx, cancel = context.WithCancel(context.Background())
+	defer cancel()
+
+	seriesid := c.Param("id")
+	matchid := c.Param("matchid")
+
+	response, errModel := controller.GameService.GetMatchSummary(ctx, seriesid, matchid)
+
+	if errModel != (responsemodels.ErrorModel{}) {
+		c.JSON(errModel.ErrorCode, errModel)
+		return
+	}
+
+	c.JSON(http.StatusOK, response)
+}
+
 //UpdateSquad godoc
 // @Summary Update
 // @Tags Game

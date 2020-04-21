@@ -147,8 +147,6 @@ func (controller InningsController) StartNewOver(c *gin.Context) {
 // @Accept  json
 // @Produce json
 // @Param model body requestmodels.NextBatsmanModel true "Next Batsman Model"
-// @Param id path string true "Series ID" string
-// @Param matchid path string true "Match ID" string
 // @Param inningsid path string true "Innings ID" string
 // @Success 204 {object} gin.H
 // @Failure 400 {object} responsemodels.ErrorModel
@@ -181,4 +179,35 @@ func (controller InningsController) AddNextBatsman(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusNoContent, nil)
+}
+
+//GetInningsSummary godoc
+// @Summary Get the innings summary
+// @Tags Innings
+// @Accept  json
+// @Produce json
+// @Param inningsid path string true "Innings ID" string
+// @Success 200 {object} responsemodels.InningsSummary
+// @Failure 400 {object} responsemodels.ErrorModel
+// @Failure 404 {object} responsemodels.ErrorModel
+// @Router /innings/:inningsid [get]
+func (controller InningsController) GetInningsSummary(c *gin.Context) {
+	var (
+		ctx    context.Context
+		cancel context.CancelFunc
+	)
+
+	ctx, cancel = context.WithCancel(context.Background())
+	defer cancel()
+
+	inningsid := c.Param("inningsid")
+
+	response, errModel := controller.InningsService.GetInningsSummary(ctx, inningsid)
+
+	if errModel != (responsemodels.ErrorModel{}) {
+		c.JSON(errModel.ErrorCode, errModel)
+		return
+	}
+
+	c.JSON(http.StatusOK, response)
 }

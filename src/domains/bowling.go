@@ -13,4 +13,5 @@ type Bowling struct {
 	InningsID primitive.ObjectID
 	PlayerID  primitive.ObjectID
 	Overs     []Over
+	Wickets   int
 }

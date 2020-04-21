@@ -58,9 +58,7 @@ func (repo *BattingRepository) GetByID(ctx context.Context, id string) domains.B
 	batting := domains.Batting{}
 	err = findResult.Decode(&batting)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return domains.Batting{}
-		} else {
+		if err != mongo.ErrNoDocuments {
 			panic(err)
 		}
 	}

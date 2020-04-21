@@ -5,6 +5,7 @@ import (
 	"context"
 	"cricket-scoreboard-api/src/domains"
 	"cricket-scoreboard-api/src/driver"
+	"cricket-scoreboard-api/src/models"
 	"fmt"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -79,9 +80,29 @@ func (repo *InningsRepository) GetByID(ctx context.Context, id string) domains.I
 	innings := domains.Innings{}
 	err = findResult.Decode(&innings)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return domains.Innings{}
-		} else {
+		if err != mongo.ErrNoDocuments {
+			panic(err)
+		}
+	}
+
+	return innings
+}
+
+//GetCurrentInnings retrieves last active innings object from db by matchid
+//and return that object.
+func (repo *InningsRepository) GetCurrentInnings(ctx context.Context, matchid string) domains.Innings {
+	collections := repo.DB.Database.Collection(inningsCollectionName)
+	objID, err := primitive.ObjectIDFromHex(matchid)
+	if err != nil {
+		panic(err)
+	}
+
+	findResult := collections.FindOne(ctx, bson.M{"matchid": objID, "inningsstatus": models.OnGoing})
+
+	innings := domains.Innings{}
+	err = findResult.Decode(&innings)
+	if err != nil {
+		if err != mongo.ErrNoDocuments {
 			panic(err)
 		}
 	}

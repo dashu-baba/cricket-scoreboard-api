@@ -111,6 +111,7 @@ func NewRouter() *gin.Engine {
 		series.PUT(":id/teams/:teamid", gameController.UpdateSquad)
 		series.POST(":id/matches", gameController.CreateMatches)
 		series.PATCH(":id/matches/:matchid", gameController.UpdateMatchStatus)
+		series.GET(":id/matches/:matchid", gameController.GetMatchSummary)
 		series.PUT(":id/matches/:matchid", gameController.UpdateMatchPlayingSquad)
 		series.POST(":id/matches/:matchid/innings", gameController.CreateInnings)
 	}
@@ -120,6 +121,8 @@ func NewRouter() *gin.Engine {
 		innings.PUT(":inningsid/batsman", inningsController.AddNextBatsman)
 		innings.PUT(":inningsid/over/:overid", inningsController.UpdateOver)
 		innings.POST(":inningsid/over", inningsController.StartNewOver)
+		innings.GET(":inningsid", inningsController.GetInningsSummary)
+		// innings.GET(":inningsid/details", inningsController.GetInningsDetails)
 	}
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 

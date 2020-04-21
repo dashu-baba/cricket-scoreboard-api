@@ -68,6 +68,32 @@ func (repo *OverRepository) GetLastOverNumber(ctx context.Context, inningsid str
 	return over.OverNumber
 }
 
+//GetLast2Overs godoc
+//Get the last entry of the over
+func (repo *OverRepository) GetLast2Overs(ctx context.Context, inningsid string) []domains.Over {
+	collections := repo.DB.Database.Collection(overCollectionName)
+	objID, err := primitive.ObjectIDFromHex(inningsid)
+	if err != nil {
+		panic(err)
+	}
+	option := options.Find()
+	option.SetSort(bson.M{"overnumber": -1})
+	option.SetLimit(2)
+	cursor, err := collections.Find(ctx, bson.M{"inningsid": objID}, option)
+	if err != nil {
+		panic(err)
+	}
+
+	overs := []domains.Over{}
+	for cursor.Next(ctx) {
+		over := domains.Over{}
+		cursor.Decode(&over)
+		overs = append(overs, over)
+	}
+
+	return overs
+}
+
 //GetByID retrieves macth object from db by id
 //and return that object.
 func (repo *OverRepository) GetByID(ctx context.Context, id string) domains.Over {
@@ -82,9 +108,7 @@ func (repo *OverRepository) GetByID(ctx context.Context, id string) domains.Over
 	over := domains.Over{}
 	err = findResult.Decode(&over)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return domains.Over{}
-		} else {
+		if err != mongo.ErrNoDocuments {
 			panic(err)
 		}
 	}

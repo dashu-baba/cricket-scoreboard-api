@@ -361,6 +361,42 @@ func (service *GameService) CreateMatches(ctx context.Context, id string, model 
 	return responsemodels.ErrorModel{}
 }
 
+//GetMatchSummary godoc
+// @Summary This method return the summary of a match.
+func (service *GameService) GetMatchSummary(ctx context.Context, id string, matchid string) (responsemodels.MatchSummary, responsemodels.ErrorModel) {
+	series := service.SeriesRepository.GetByID(ctx, id)
+
+	if series.ID.String() == "" {
+		return responsemodels.MatchSummary{}, responsemodels.ErrorModel{
+			ErrorCode: http.StatusNotFound,
+			Message:   "The series does not exists",
+		}
+	}
+
+	match := service.MatchRepository.GetByID(ctx, matchid)
+
+	if match.ID.String() == "" {
+		return responsemodels.MatchSummary{}, responsemodels.ErrorModel{
+			ErrorCode: http.StatusNotFound,
+			Message:   "The match does not exists",
+		}
+	}
+
+	response := responsemodels.MatchSummary{
+		ID:        match.ID.Hex(),
+		MatchType: match.MatchType,
+		SeriesID:  id,
+		Status:    match.MatchStatus,
+	}
+
+	innings := service.InningsRepository.GetCurrentInnings(ctx, matchid)
+	if innings.ID.Hex() != "" {
+		response.CurrentInningsID = innings.ID.Hex()
+	}
+
+	return response, responsemodels.ErrorModel{}
+}
+
 //UpdateSquad godoc
 // @Summary update squad updates squad of a team by adding or removing player
 func (service *GameService) UpdateSquad(ctx context.Context, id string, teamID string, model requestmodels.UpdateSquadModel) responsemodels.ErrorModel {

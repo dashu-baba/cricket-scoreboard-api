@@ -6,7 +6,6 @@ import (
 	"cricket-scoreboard-api/src/domains"
 	"cricket-scoreboard-api/src/driver"
 	"fmt"
-	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -74,28 +73,6 @@ func (repo *MatchRepository) GetLastMatchNumber(ctx context.Context) int {
 	return match.Number
 }
 
-//GetAll retrieves all player objects from db
-//by teamid
-//and return that collection.
-func (repo *MatchRepository) GetAll(teamID primitive.ObjectID) []domains.Player {
-	ctx, _ := context.WithTimeout(context.Background(), 50*time.Second)
-	collections := repo.DB.Database.Collection(matchCollectionName)
-	cursor, err := collections.Find(ctx, bson.M{"teamID": teamID})
-
-	if err != nil {
-		panic(err)
-	}
-
-	players := []domains.Player{}
-	for cursor.Next(ctx) {
-		player := domains.Player{}
-		cursor.Decode(&player)
-		players = append(players, player)
-	}
-
-	return players
-}
-
 //GetByID retrieves macth object from db by id
 //and return that object.
 func (repo *MatchRepository) GetByID(ctx context.Context, id string) domains.Match {
@@ -110,9 +87,7 @@ func (repo *MatchRepository) GetByID(ctx context.Context, id string) domains.Mat
 	match := domains.Match{}
 	err = findResult.Decode(&match)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return domains.Match{}
-		} else {
+		if err != mongo.ErrNoDocuments {
 			panic(err)
 		}
 	}

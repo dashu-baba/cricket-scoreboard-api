@@ -85,25 +85,3 @@ func (repo *GameRepository) GetByID(id primitive.ObjectID) domains.Game {
 
 	return game
 }
-
-//GetAll retrieves all player objects from db
-//by teamid
-//and return that collection.
-func (repo *GameRepository) GetAll(teamID primitive.ObjectID) []domains.Player {
-	ctx, _ := context.WithTimeout(context.Background(), 50*time.Second)
-	collections := repo.DB.Database.Collection(collectionName)
-	cursor, err := collections.Find(ctx, bson.M{"teamID": teamID})
-
-	if err != nil {
-		panic(err)
-	}
-
-	players := []domains.Player{}
-	for cursor.Next(ctx) {
-		player := domains.Player{}
-		cursor.Decode(&player)
-		players = append(players, player)
-	}
-
-	return players
-}

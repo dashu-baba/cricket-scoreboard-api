@@ -750,3 +750,60 @@ func (service *InningsService) AddNextBatsman(ctx context.Context, inningsID str
 
 	return responsemodels.ErrorModel{}
 }
+
+//GetInningsSummary godoc
+// @Summary Get the summary of the innings
+func (service *InningsService) GetInningsSummary(ctx context.Context, inningsID string) (responsemodels.InningsSummary, responsemodels.ErrorModel) {
+
+	innings := service.InningsRepository.GetByID(ctx, inningsID)
+	if innings.ID.String() == "" {
+		return responsemodels.InningsSummary{}, responsemodels.ErrorModel{
+			ErrorCode: http.StatusNotFound,
+			Message:   "The innings you are tried to modified is not exists",
+		}
+	}
+
+	response := responsemodels.InningsSummary{
+		ID:      innings.ID.Hex(),
+		MatchID: innings.MatchID.Hex(),
+		Status:  innings.InningsStatus,
+	}
+
+	batsmans := service.BattingRepository.GetCurrentBatsman(ctx, inningsID)
+	for _, val := range batsmans {
+		response.Batsmans = append(response.Batsmans, responsemodels.InningsBatsman{
+			ID:         val.ID.Hex(),
+			Ball:       val.Ball,
+			Four:       val.Four,
+			IsInStrike: val.IsInCrease,
+			PlayerID:   val.PlayerID.Hex(),
+			Run:        val.Run,
+			Six:        val.Six,
+		})
+	}
+
+	overs := service.OverRepository.GetLast2Overs(ctx, inningsID)
+	over := overs[0]
+	response.CurrentOver = responsemodels.Over{
+		Ball:     over.Ball,
+		ID:       over.ID.Hex(),
+		Sequence: over.Sequence,
+	}
+
+	bowlerIds := []string{}
+	for _, val := range overs {
+		bowlerIds = append(bowlerIds, val.BowlerID.Hex())
+	}
+	bowlers := service.BowlingRepository.GetAllByIds(ctx, bowlerIds)
+	for _, val := range bowlers {
+		response.Bowlers = append(response.Bowlers, responsemodels.InningsBowler{
+			ID:       val.ID.Hex(),
+			Over:     len(val.Overs),
+			Wickets:  val.Wickets,
+			IsActive: val.IsCurrent,
+			PlayerID: val.PlayerID.Hex(),
+		})
+	}
+
+	return response, responsemodels.ErrorModel{}
+}
